@@ -16,21 +16,23 @@ export function CommandPalette() {
   const [query, setQuery] = useState('')
   const router = useRouter()
 
+  function cerrar() {
+    setAbierto(false)
+    setQuery('')
+  }
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         setAbierto(true)
       }
-      if (e.key === 'Escape') setAbierto(false)
+      if (e.key === 'Escape') cerrar()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setAbierto])
-
-  useEffect(() => {
-    if (!abierto) setQuery('')
-  }, [abierto])
 
   const q = query.trim().toLowerCase()
 
@@ -48,11 +50,11 @@ export function CommandPalette() {
 
   function ir(href: string) {
     router.push(href)
-    setAbierto(false)
+    cerrar()
   }
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-start justify-center bg-black/40 px-4 pt-24" onClick={() => setAbierto(false)}>
+    <div className="fixed inset-0 z-[300] flex items-start justify-center bg-black/40 px-4 pt-24" onClick={cerrar}>
       <div className="animate-pop-in w-full max-w-lg overflow-hidden rounded-card border border-line bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2 border-b border-line px-4 py-3">
           <Search size={18} className="text-muted" />
@@ -63,7 +65,7 @@ export function CommandPalette() {
             placeholder="Buscar cliente, obra o número de presupuesto..."
             className="flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-muted"
           />
-          <button onClick={() => setAbierto(false)} className="text-muted hover:text-ink">
+          <button onClick={cerrar} className="text-muted hover:text-ink">
             <X size={16} />
           </button>
         </div>
