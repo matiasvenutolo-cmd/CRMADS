@@ -11,6 +11,7 @@ import { Aviso } from '@/components/ui/estado'
 import { Codigo } from '@/components/comun/page-head'
 import { AccionesSeguimiento } from '@/components/hoy/acciones-seguimiento'
 import { PrimerosPasos } from '@/components/hoy/primeros-pasos'
+import { EtapasAValidar } from '@/components/hoy/etapas-a-validar'
 
 export const metadata: Metadata = { title: 'Hoy' }
 
@@ -48,7 +49,10 @@ export default async function HoyPage() {
       </header>
 
       {!conDatos ? (
-        <PrimerosPasos />
+        <div className="flex flex-col gap-6">
+          <PrimerosPasos />
+          <EtapasAValidar />
+        </div>
       ) : (
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-7">
           <div className="flex min-w-0 flex-col gap-5">
@@ -156,6 +160,9 @@ export default async function HoyPage() {
               </Link>
             </Surface>
           </aside>
+          <div className="lg:col-span-2">
+            <EtapasAValidar />
+          </div>
         </div>
       )}
     </div>
