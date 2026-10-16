@@ -52,6 +52,7 @@ export function ClienteSelector({ opciones, valor, onChange, id }: { opciones: {
       <input
         id={id}
         ref={inputRef}
+        data-autofocus
         value={texto}
         autoComplete="off"
         placeholder="Buscá o escribí el nombre de un cliente nuevo"

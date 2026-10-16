@@ -33,7 +33,11 @@ export function Panel({
   useEffect(() => {
     const d = ref.current
     if (!d) return
-    if (abierto && !d.open) d.showModal()
+    if (abierto && !d.open) {
+      d.showModal()
+      // showModal enfoca el primer botón (cerrar); preferimos el campo marcado para escribir.
+      requestAnimationFrame(() => d.querySelector<HTMLElement>('[data-autofocus]')?.focus())
+    }
     if (!abierto && d.open) d.close()
   }, [abierto])
 

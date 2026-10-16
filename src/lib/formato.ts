@@ -7,7 +7,7 @@ export function dinero(monto: number | null | undefined, moneda: string = 'ARS')
 export function dineroCompacto(monto: number, moneda: string = 'ARS'): string {
   const pre = moneda === 'USD' ? 'US$ ' : '$ '
   if (monto >= 1_000_000) return `${pre}${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 }).format(monto / 1_000_000)} M`
-  if (monto >= 1_000) return `${pre}${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(monto / 1_000)} mil`
+  if (monto >= 1_000) return `${pre}${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 }).format(monto / 1_000)} mil`
   return `${pre}${monto}`
 }
 

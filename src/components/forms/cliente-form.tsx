@@ -62,7 +62,7 @@ export function ClienteForm({ abierto, onCerrar, existente }: { abierto: boolean
         }}
       >
         <Field label="Nombre" htmlFor="c-nombre" hint="Constructora, estudio, desarrolladora o consorcio.">
-          <Input id="c-nombre" value={d.nombre} onChange={set('nombre')} autoFocus />
+          <Input id="c-nombre" value={d.nombre} onChange={set('nombre')} data-autofocus />
         </Field>
         <Field label="Persona de contacto" htmlFor="c-contacto">
           <Input id="c-contacto" value={d.contacto} onChange={set('contacto')} placeholder="Nombre y cargo" />

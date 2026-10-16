@@ -95,7 +95,7 @@ export function Composer({
         onKeyDown={(e) => {
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) guardar()
         }}
-        autoFocus={autoFocus}
+        data-autofocus={autoFocus || undefined}
         placeholder={PLACEHOLDER[tipo]}
         rows={2}
         className="block w-full resize-none bg-transparent px-4 py-3 text-[14.5px] leading-relaxed text-ink outline-none placeholder:text-ink-3/80 [field-sizing:content] min-h-[76px]"

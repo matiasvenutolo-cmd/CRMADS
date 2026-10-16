@@ -100,7 +100,7 @@ function Paleta({ onCerrar }: { onCerrar: () => void }) {
               if (e.key === 'Enter' && visibles[sel]) ir(visibles[sel])
             }}
             placeholder="Cliente, dirección o número (P-0012, O-0003)…"
-            className="h-14 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-3"
+            className="h-14 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-3 focus-visible:outline-none"
           />
           {buscando && <span className="size-4 animate-spin rounded-full border-2 border-ink-3 border-r-transparent" />}
         </div>

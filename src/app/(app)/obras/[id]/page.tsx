@@ -69,7 +69,7 @@ export default async function ObraPage({ params }: { params: Promise<{ id: strin
       <EtapaActual obra={o} etapas={o.etapas} hoy={hoy} />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="flex flex-col gap-5 lg:order-none">
+        <aside className="order-2 flex flex-col gap-5 lg:order-none">
           <Surface>
             <SurfaceHeader titulo="Recorrido de la obra" accion={<span className="text-[12.5px] text-ink-3">{o.resumen.completas} de {o.resumen.total}</span>} />
             <div className="px-4 py-2.5">
@@ -103,7 +103,7 @@ export default async function ObraPage({ params }: { params: Promise<{ id: strin
           </Surface>
         </aside>
 
-        <div className="flex min-w-0 flex-col gap-8">
+        <div className="order-1 flex min-w-0 flex-col gap-8 lg:order-none">
           <section>
             <h2 className="mb-3 font-serif text-[24px] text-ink">Fotos y archivos</h2>
             <Surface className="p-4">
