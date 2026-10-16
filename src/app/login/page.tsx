@@ -10,8 +10,8 @@ export default function LoginPage() {
     <main className="grid min-h-dvh md:grid-cols-[1.05fr_1fr]">
       <section className="relative hidden overflow-hidden bg-ink text-white md:flex md:flex-col md:justify-between md:p-12 lg:p-16">
         <Image src="/logo/ads-logo.png" alt="Ascensores del Sur" width={92} height={51} className="relative z-10" priority />
-        <HuecoIlustracion className="absolute right-[6%] top-1/2 h-[86%] -translate-y-1/2 text-white opacity-70" />
-        <div className="relative z-10 max-w-[55%]">
+        <HuecoIlustracion className="absolute right-[6%] top-1/2 hidden h-[86%] -translate-y-1/2 text-white opacity-70 xl:block" />
+        <div className="relative z-10 xl:max-w-[55%]">
           <p className="font-serif text-[36px] leading-[1.05] tracking-[-0.01em] lg:text-[48px] xl:text-[56px]">
             Cada obra, de la primera llamada <em className="text-white/55">a la puesta en marcha.</em>
           </p>

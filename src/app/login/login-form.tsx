@@ -11,10 +11,10 @@ export function LoginForm() {
   return (
     <form action={accion} className="mt-8 flex flex-col gap-4">
       <Field label="Usuario" htmlFor="usuario">
-        <Input id="usuario" name="usuario" autoComplete="username" autoCapitalize="none" autoFocus required className="h-11" />
+        <Input id="usuario" name="usuario" key={estado?.usuario} defaultValue={estado?.usuario} autoComplete="username" autoCapitalize="none" autoFocus={!estado?.usuario} required className="h-11" />
       </Field>
       <Field label="Contraseña" htmlFor="password">
-        <Input id="password" name="password" type="password" autoComplete="current-password" required className="h-11" />
+        <Input id="password" name="password" type="password" autoComplete="current-password" autoFocus={Boolean(estado?.usuario)} required className="h-11" />
       </Field>
       {estado?.error && (
         <p role="alert" className="rounded-control bg-bad-soft px-3 py-2.5 text-[13.5px] text-bad">

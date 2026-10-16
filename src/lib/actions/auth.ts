@@ -7,14 +7,14 @@ import { usuarios } from '@/lib/db/schema'
 import { hashPassword, verifyPassword } from '@/lib/auth/hash'
 import { crearSesion, destruirSesion, getUsuarioActual } from '@/lib/session'
 
-export async function iniciarSesion(_prev: { error?: string } | undefined, form: FormData): Promise<{ error?: string }> {
+export async function iniciarSesion(_prev: { error?: string; usuario?: string } | undefined, form: FormData): Promise<{ error?: string; usuario?: string }> {
   const usuario = String(form.get('usuario') ?? '').trim().toLowerCase()
   const password = String(form.get('password') ?? '')
-  if (!usuario || !password) return { error: 'Completá usuario y contraseña.' }
+  if (!usuario || !password) return { error: 'Completá usuario y contraseña.', usuario }
 
   const u = await db.query.usuarios.findFirst({ where: eq(usuarios.usuario, usuario) })
   const ok = u && u.activo && (await verifyPassword(password, u.passwordHash))
-  if (!ok) return { error: 'Usuario o contraseña incorrectos.' }
+  if (!ok) return { error: 'Usuario o contraseña incorrectos.', usuario }
 
   await crearSesion(u.id)
   redirect('/')
