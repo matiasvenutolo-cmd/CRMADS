@@ -1,118 +1,110 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --color-brand-blue: #034ea2;
-  --color-brand-blue-deep: #023d80;
-  --color-brand-orange: #faa61a;
-  --color-ink: #34393e;
-  --color-muted: #5c6875;
-  --color-paper: #f4f6f7;
-  --color-line: #d8e0e7;
-  --color-white: #ffffff;
-  --color-success: #1f8a4c;
-  --color-success-bg: #e7f6ed;
-  --color-danger: #c22c2c;
-  --color-danger-bg: #fbeaea;
-  --color-warning-bg: #fff3e0;
+@theme {
+  --color-canvas: #f4f3ef;
+  --color-surface: #ffffff;
+  --color-subtle: #f9f8f5;
+  --color-ink: #15171a;
+  --color-ink-2: #3d424a;
+  --color-ink-3: #6b717b;
+  --color-line: #e5e2db;
+  --color-line-strong: #d3cfc6;
+
+  --color-accent: #0064a4;
+  --color-accent-hover: #00548a;
+  --color-accent-soft: #e8f1f8;
+
+  --color-warn: #965f00;
+  --color-warn-dot: #d99a1e;
+  --color-warn-soft: #fbf2df;
+  --color-ok: #2e7d4f;
+  --color-ok-soft: #e8f3ec;
+  --color-bad: #b3392f;
+  --color-bad-soft: #f9e9e7;
+  --color-teal: #0e7c86;
+
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --radius-surface: 14px;
+  --radius-control: 10px;
+
+  --shadow-surface: 0 1px 2px rgb(21 23 26 / 0.04), 0 0 0 1px rgb(21 23 26 / 0.02);
+  --shadow-float: 0 24px 48px -16px rgb(21 23 26 / 0.22), 0 0 0 1px rgb(21 23 26 / 0.06);
+
+  --animate-enter: enter 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-sheet: sheet 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-sheet-up: sheet-up 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-fade: fade 160ms ease-out;
 }
 
-@theme inline {
-  --color-brand-blue: var(--color-brand-blue);
-  --color-brand-blue-deep: var(--color-brand-blue-deep);
-  --color-brand-orange: var(--color-brand-orange);
-  --color-ink: var(--color-ink);
-  --color-muted: var(--color-muted);
-  --color-paper: var(--color-paper);
-  --color-line: var(--color-line);
-  --color-success: var(--color-success);
-  --color-success-bg: var(--color-success-bg);
-  --color-danger: var(--color-danger);
-  --color-danger-bg: var(--color-danger-bg);
-  --color-warning-bg: var(--color-warning-bg);
-  --font-display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
-  --font-body: 'Inter', Arial, Helvetica, sans-serif;
-  --radius-card: 12px;
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.985);
+  }
 }
-
-* {
-  box-sizing: border-box;
+@keyframes sheet {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(32px);
+    opacity: 0;
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
 }
 
 html {
   -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  margin: 0;
-  background: var(--color-paper);
+  background: var(--color-canvas);
   color: var(--color-ink);
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
+  font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'ss01', 'cv11';
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
+/* iOS hace zoom en inputs de menos de 16px */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
-button {
-  cursor: pointer;
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-line);
-  border-radius: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-fade-in {
-  animation: fade-in 0.22s ease-out;
+::selection {
+  background: var(--color-accent-soft);
 }
 
-@keyframes pop-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.92);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
   }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-.animate-pop-in {
-  animation: pop-in 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@keyframes check-draw {
-  from {
-    stroke-dashoffset: 40;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-.animate-check-draw path {
-  stroke-dasharray: 40;
-  stroke-dashoffset: 40;
-  animation: check-draw 0.5s ease-out 0.15s forwards;
 }
