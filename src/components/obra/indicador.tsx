@@ -13,7 +13,7 @@ export function IndicadorEtapas({ etapas, atrasada, className }: { etapas: Etapa
             key={e.orden}
             className={cn(
               'h-[14px] w-[5px] rounded-[1.5px]',
-              e.estado === 'completa' && 'bg-ink/80',
+              e.estado === 'completa' && 'bg-brand/85',
               e.estado === 'en_curso' && (atrasada ? 'bg-warn-dot' : 'bg-accent'),
               e.estado === 'pendiente' && 'bg-line-strong'
             )}

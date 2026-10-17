@@ -2,7 +2,7 @@ import { forwardRef, type ButtonHTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
 const VARIANTES = {
-  primary: 'bg-ink text-white hover:bg-[#2b2e34] disabled:bg-ink/40',
+  primary: 'bg-brand text-white hover:bg-brand-hover disabled:bg-ink/40',
   accent: 'bg-accent text-white hover:bg-accent-hover disabled:bg-accent/40',
   secondary: 'bg-surface text-ink border border-line-strong hover:bg-subtle hover:border-ink/25',
   ghost: 'text-ink-2 hover:bg-ink/[0.05] hover:text-ink',

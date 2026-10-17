@@ -56,7 +56,7 @@ export function Shell({ nombre, children }: { nombre: string; children: React.Re
         <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-3 px-4 md:gap-6 md:px-8">
           <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Inicio">
             <Image src="/logo/ads-logo.png" alt="ADS" width={48} height={27} priority />
-            <span className="hidden font-serif text-[21px] leading-none text-ink lg:inline">Obras</span>
+            <span className="hidden font-serif text-[20px] uppercase leading-none tracking-[0.04em] text-ink lg:inline">Obras</span>
           </Link>
 
           <nav aria-label="Principal" className="hidden items-center gap-0.5 rounded-full bg-ink/[0.045] p-1 md:flex">
@@ -95,7 +95,7 @@ export function Shell({ nombre, children }: { nombre: string; children: React.Re
             <div className="hidden md:block">
               <Menu
                 disparador={({ alternar, abierto }) => (
-                  <button type="button" onClick={alternar} aria-expanded={abierto} className="flex h-9 cursor-pointer items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-3 text-[13.5px] font-medium text-white transition-colors hover:bg-[#2b2e34]">
+                  <button type="button" onClick={alternar} aria-expanded={abierto} className="flex h-9 cursor-pointer items-center gap-1.5 rounded-full bg-brand pl-3.5 pr-3 text-[13.5px] font-medium text-white transition-colors hover:bg-brand-hover">
                     <Plus className="size-4" />
                     Nuevo
                     <ChevronDown className={cn('size-3.5 opacity-70 transition-transform', abierto && 'rotate-180')} />
@@ -142,7 +142,7 @@ export function Shell({ nombre, children }: { nombre: string; children: React.Re
                   onClick={alternar}
                   aria-label="Nuevo"
                   aria-expanded={abierto}
-                  className="-mt-5 flex size-14 cursor-pointer items-center justify-center rounded-full bg-ink text-white shadow-float transition-transform active:scale-95"
+                  className="-mt-5 flex size-14 cursor-pointer items-center justify-center rounded-full bg-brand text-white shadow-float transition-transform active:scale-95"
                 >
                   <Plus className={cn('size-6 transition-transform duration-200', abierto && 'rotate-45')} />
                 </button>

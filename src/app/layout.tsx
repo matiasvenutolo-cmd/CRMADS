@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from 'next'
-import { Instrument_Sans, Instrument_Serif, IBM_Plex_Mono } from 'next/font/google'
+import { Inter, Barlow_Condensed } from 'next/font/google'
 import './globals.css'
 
-const sans = Instrument_Sans({ subsets: ['latin'], variable: '--font-instrument-sans', display: 'swap' })
-const serif = Instrument_Serif({ subsets: ['latin'], weight: '400', style: ['normal', 'italic'], variable: '--font-instrument-serif', display: 'swap' })
-const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-plex-mono', display: 'swap' })
+const sans = Inter({ subsets: ['latin'], variable: '--font-texto', display: 'swap' })
+const display = Barlow_Condensed({ subsets: ['latin'], weight: ['500', '600', '700', '800'], style: ['normal', 'italic'], variable: '--font-titulo', display: 'swap' })
 
 export const metadata: Metadata = {
   title: { default: 'ADS Obras', template: '%s · ADS Obras' },
@@ -13,7 +12,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#f4f3ef',
+  themeColor: '#f4f6f7',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
@@ -21,7 +20,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-AR" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
+    <html lang="es-AR" className={`${sans.variable} ${display.variable}`}>
       <body>{children}</body>
     </html>
   )

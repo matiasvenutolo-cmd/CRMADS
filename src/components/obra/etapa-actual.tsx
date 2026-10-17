@@ -50,17 +50,16 @@ export function EtapaActual({ obra, etapas, hoy }: { obra: Obra; etapas: Etapa[]
   }
 
   return (
-    <section className="relative overflow-hidden rounded-[20px] bg-ink text-white">
-      <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 bg-[repeating-linear-gradient(0deg,transparent_0_31px,rgb(255_255_255/0.05)_31px_32px)] md:block" aria-hidden />
+    <section className="relative overflow-hidden rounded-[20px] banda text-white">
       <div className="relative flex flex-col gap-6 p-6 md:flex-row md:items-end md:justify-between md:p-8">
         <div className="flex items-end gap-5 md:gap-7">
-          <div className="flex items-start font-serif leading-[0.8] tracking-[-0.03em]">
+          <div className="flex items-start font-serif font-extrabold leading-[0.8] tracking-[-0.02em]">
             <span className="text-[88px] md:text-[112px]">{terminada ? '✓' : String(actual?.orden ?? total).padStart(2, '0')}</span>
             {!terminada && <span className="mt-2 text-[22px] text-white/35 md:text-[26px]">/{String(total).padStart(2, '0')}</span>}
           </div>
           <div className="min-w-0 pb-1.5">
-            <p className="text-[12px] font-medium uppercase tracking-[0.1em] text-white/45">{terminada ? 'Obra terminada' : 'Etapa actual'}</p>
-            <p className="mt-1.5 font-serif text-[26px] leading-[1.1] md:text-[32px]">{terminada ? 'Equipo puesto en marcha' : actual?.nombre}</p>
+            <p className="kicker kicker-claro">{terminada ? 'Obra terminada' : 'Etapa actual'}</p>
+            <p className="mt-1.5 font-serif text-[30px] leading-[1.05] md:text-[38px]">{terminada ? 'Equipo puesto en marcha' : actual?.nombre}</p>
             <p className="mt-2 text-[13.5px] text-white/55">
               {terminada
                 ? `Terminada el ${fechaCorta(obra.fechaFin)}`
@@ -70,7 +69,7 @@ export function EtapaActual({ obra, etapas, hoy }: { obra: Obra; etapas: Etapa[]
                   ]
                     .filter(Boolean)
                     .join(' · ') || 'Sin fechas cargadas'}
-              {atrasada && <span className="ml-1 font-medium text-[#f4c56a]">{actual?.fechaInicio ? '· ' : ''}Atrasada desde el {fechaCorta(actual!.fechaPrevista)}</span>}
+              {atrasada && <span className="ml-1 font-medium text-naranja">{actual?.fechaInicio ? '· ' : ''}Atrasada desde el {fechaCorta(actual!.fechaPrevista)}</span>}
             </p>
           </div>
         </div>

@@ -12,16 +12,16 @@ export function PrimerosPasos() {
     { n: '03', t: 'Ganalo y convertilo en obra', d: 'Un clic y la obra arranca con sus 9 etapas, hasta la puesta en marcha.' },
   ]
   return (
-    <section className="relative overflow-hidden rounded-[20px] bg-ink text-white">
-      <HuecoIlustracion className="pointer-events-none absolute -right-10 -top-24 hidden h-[640px] text-white opacity-60 lg:block" actual={1} />
+    <section className="relative overflow-hidden rounded-[20px] banda text-white">
+      <HuecoIlustracion className="pointer-events-none absolute -right-10 -top-24 hidden h-[640px] text-white lg:block" actual={1} />
       <div className="relative max-w-[640px] px-6 py-9 md:px-10 md:py-12">
-        <p className="text-[12px] font-medium uppercase tracking-[0.1em] text-white/50">Para empezar</p>
+        <p className="kicker kicker-claro">Para empezar</p>
         <h2 className="mt-3 font-serif text-[32px] leading-[1.08] md:text-[40px]">Todavía no hay nada cargado. Arranquemos por lo que tengas en la mano.</h2>
         <ol className="mt-8 grid gap-5 md:grid-cols-3 md:gap-6">
           {pasos.map((p) => (
             <li key={p.n} className="border-t border-white/15 pt-3">
-              <span className="font-mono text-[12px] text-white/45">{p.n}</span>
-              <p className="mt-1 text-[15px] font-medium">{p.t}</p>
+              <span className="font-mono text-[13px] text-naranja">{p.n}</span>
+              <p className="mt-1 font-serif text-[19px]">{p.t}</p>
               <p className="mt-1 text-[13.5px] leading-relaxed text-white/60">{p.d}</p>
             </li>
           ))}

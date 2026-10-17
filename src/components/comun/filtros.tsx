@@ -23,7 +23,7 @@ export function Pestanas({ opciones, actual }: { opciones: { valor: string; labe
             aria-current={on ? 'page' : undefined}
             className={cn(
               'flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13.5px] font-medium transition-colors',
-              on ? 'bg-ink text-white' : 'text-ink-3 hover:bg-ink/[0.05] hover:text-ink'
+              on ? 'bg-brand text-white' : 'text-ink-3 hover:bg-ink/[0.05] hover:text-ink'
             )}
           >
             {o.label}

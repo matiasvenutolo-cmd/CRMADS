@@ -41,8 +41,8 @@ export default async function HoyPage() {
   return (
     <div>
       <header className="mb-8 md:mb-10">
-        <p className="text-[13px] font-medium text-ink-3">{fechaLarga(d.hoy)}</p>
-        <h1 className="mt-1.5 font-serif text-[38px] leading-[1.04] tracking-[-0.01em] text-ink md:text-[52px]">
+        <p className="kicker">{fechaLarga(d.hoy)}</p>
+        <h1 className="mt-1.5 font-serif text-[40px] font-extrabold leading-[1] tracking-[-0.01em] text-ink md:text-[56px]">
           {saludo()}, {nombre}.
         </h1>
         <p className="mt-2 max-w-xl text-[15.5px] text-ink-2">{resumen}</p>

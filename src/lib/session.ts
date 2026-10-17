@@ -30,6 +30,6 @@ export const getUsuarioActual = cache(async (): Promise<Usuario> => {
   const jar = await cookies()
   const sesion = await verificarSesion(jar.get(COOKIE_SESION)?.value)
   const usuario = sesion ? await db.query.usuarios.findFirst({ where: eq(usuarios.id, sesion.usuarioId) }) : undefined
-  if (!usuario || !usuario.activo) redirect('/login')
+  if (!usuario || !usuario.activo) redirect('/salir')
   return usuario
 })

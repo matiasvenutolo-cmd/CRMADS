@@ -42,7 +42,7 @@ export function ElegirFecha({ valor, onChange, hoy, opciones, permitirVacio = tr
           {p.label}
         </Chip>
       ))}
-      <label className={cn('relative inline-flex h-8 cursor-pointer items-center rounded-full border px-3 text-[13px] font-medium transition-colors', valor && !esPreset ? 'border-ink bg-ink text-white' : 'border-line-strong text-ink-2 hover:border-ink/30')}>
+      <label className={cn('relative inline-flex h-8 cursor-pointer items-center rounded-full border px-3 text-[13px] font-medium transition-colors', valor && !esPreset ? 'border-brand bg-brand text-white' : 'border-line-strong text-ink-2 hover:border-ink/30')}>
         {valor && !esPreset ? new Date(`${valor}T12:00:00Z`).toLocaleDateString('es-AR', { timeZone: 'UTC', day: 'numeric', month: 'short' }) : 'Otra fecha'}
         <input type="date" value={valor ?? ''} min={hoy} onChange={(e) => onChange(e.target.value || null)} className="absolute inset-0 cursor-pointer opacity-0" aria-label="Elegir fecha" />
       </label>
@@ -56,7 +56,7 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
       type="button"
       onClick={onClick}
       aria-pressed={on}
-      className={cn('h-8 cursor-pointer rounded-full border px-3 text-[13px] font-medium transition-colors', on ? 'border-ink bg-ink text-white' : 'border-line-strong text-ink-2 hover:border-ink/30 hover:text-ink')}
+      className={cn('h-8 cursor-pointer rounded-full border px-3 text-[13px] font-medium transition-colors', on ? 'border-brand bg-brand text-white' : 'border-line-strong text-ink-2 hover:border-ink/30 hover:text-ink')}
     >
       {children}
     </button>

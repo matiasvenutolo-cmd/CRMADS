@@ -13,7 +13,7 @@ export function PageHead({ titulo, antetitulo, descripcion, acciones, volver }: 
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0">
           {antetitulo && <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-3">{antetitulo}</div>}
-          <h1 className="font-serif text-[34px] leading-[1.05] tracking-[-0.01em] text-ink text-balance md:text-[44px]">{titulo}</h1>
+          <h1 className="font-serif text-[36px] font-extrabold leading-[1] tracking-[-0.01em] text-ink text-balance md:text-[48px]">{titulo}</h1>
           {descripcion && <div className="mt-2 text-[15px] text-ink-2">{descripcion}</div>}
         </div>
         {acciones && <div className="flex shrink-0 flex-wrap items-center gap-2">{acciones}</div>}

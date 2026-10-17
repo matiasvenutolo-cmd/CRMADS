@@ -81,7 +81,7 @@ export function Composer({
             aria-pressed={tipo === t.valor}
             className={cn(
               'flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-[8px] px-2.5 text-[13px] font-medium transition-colors',
-              tipo === t.valor ? 'bg-ink text-white' : 'text-ink-3 hover:bg-ink/[0.05] hover:text-ink'
+              tipo === t.valor ? 'bg-brand text-white' : 'text-ink-3 hover:bg-ink/[0.05] hover:text-ink'
             )}
           >
             <t.icono className="size-3.5" />

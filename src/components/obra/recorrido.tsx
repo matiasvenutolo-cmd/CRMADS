@@ -32,7 +32,7 @@ function Parada({ obraId, etapa: e, hoy }: { obraId: string; etapa: Etapa; hoy: 
       <span
         className={cn(
           'relative z-[1] flex size-[39px] shrink-0 items-center justify-center rounded-[10px] border font-mono text-[12.5px]',
-          hecha && 'border-ink bg-ink text-white',
+          hecha && 'border-brand bg-brand text-white',
           actual && (atrasada ? 'border-warn-dot bg-warn-soft text-warn' : 'border-accent bg-accent text-white shadow-[0_0_0_4px_var(--color-accent-soft)]'),
           !hecha && !actual && 'border-line-strong bg-surface text-ink-3'
         )}
