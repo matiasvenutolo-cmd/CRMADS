@@ -12,7 +12,7 @@ import { Punto } from '@/components/ui/estado'
 import { PresupuestoForm } from '@/components/forms/presupuesto-form'
 import { cambiarEstado, ganarYCrearObra, marcarPerdido, reabrirPresupuesto } from '@/lib/actions/presupuestos'
 import { opcionesDeClientes } from '@/lib/actions/clientes'
-import { ESTADOS_PRESUPUESTO, MOTIVOS_PERDIDA, type EstadoPresupuesto } from '@/lib/dominio'
+import { ESTADOS_PRESUPUESTO, ETAPAS_OBRA, MOTIVOS_PERDIDA, type EstadoPresupuesto } from '@/lib/dominio'
 import type { Presupuesto } from '@/lib/db/schema'
 
 type Props = { presupuesto: Presupuesto & { clienteNombre: string }; hoy: string }
@@ -72,13 +72,14 @@ export function AccionesPresupuesto({ presupuesto, hoy }: Props) {
   const [opciones, setOpciones] = useState<{ id: string; nombre: string }[]>([])
   const [inicio, setInicio] = useState(hoy)
   const [fin, setFin] = useState('')
+  const [etapa, setEtapa] = useState('1')
   const [motivo, setMotivo] = useState('')
   const [nota, setNota] = useState('')
   const activo = ['borrador', 'enviado', 'negociacion'].includes(presupuesto.estado)
 
   const ganar = () =>
     start(async () => {
-      const r = await ganarYCrearObra(presupuesto.id, { fechaInicio: inicio, fechaFinEstimada: fin })
+      const r = await ganarYCrearObra(presupuesto.id, { fechaInicio: inicio, fechaFinEstimada: fin, etapaActual: Number(etapa) })
       if (!r.ok) return toast(r.error, 'error')
       toast('¡Ganado! La obra ya está en marcha')
       router.push(`/obras/${r.data!.obraId}`)
@@ -144,7 +145,7 @@ export function AccionesPresupuesto({ presupuesto, hoy }: Props) {
         abierto={modal === 'ganar'}
         onCerrar={() => setModal(null)}
         titulo="¡Presupuesto ganado!"
-        descripcion="Se crea la obra con estos datos y arranca en la etapa 1, Anticipo y alta de obra."
+        descripcion="Se crea la obra con los datos del presupuesto."
         pie={
           <>
             <Button variante="ghost" onClick={() => setModal(null)}>
@@ -156,6 +157,15 @@ export function AccionesPresupuesto({ presupuesto, hoy }: Props) {
           </>
         }
       >
+        <Field label="¿En qué etapa está la obra?" htmlFor="g-etapa" hint="Si recién arranca, dejala en la 1. Las anteriores quedan completas." className="mb-4">
+          <Select id="g-etapa" value={etapa} onChange={(e) => setEtapa(e.target.value)}>
+            {ETAPAS_OBRA.map((e, i) => (
+              <option key={e} value={i + 1}>
+                {i + 1}. {e}
+              </option>
+            ))}
+          </Select>
+        </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Inicio de obra" htmlFor="g-inicio">
             <Input id="g-inicio" type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} />

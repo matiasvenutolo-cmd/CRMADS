@@ -6,7 +6,7 @@ import { ContactoRapido } from '@/components/comun/contacto-rapido'
 import { getPresupuesto } from '@/lib/data/presupuestos'
 import { codigoObra, codigoPresupuesto } from '@/lib/dominio'
 import { dinero } from '@/lib/formato'
-import { fechaCorta, hoyISO, relativo } from '@/lib/fechas'
+import { hoyISO } from '@/lib/fechas'
 import { PageHead, Codigo } from '@/components/comun/page-head'
 import { Surface, SurfaceHeader } from '@/components/ui/surface'
 import { EstadoPresupuestoLabel } from '@/components/ui/estado'
@@ -14,7 +14,7 @@ import { Bitacora } from '@/components/comun/bitacora'
 import { Composer } from '@/components/comun/composer'
 import { Archivos } from '@/components/comun/archivos'
 import { AccionesPresupuesto, SelectorEstado } from '@/components/presupuesto/acciones'
-import { SeguimientoEditable } from '@/components/presupuesto/seguimiento-editable'
+import { FechaEnvioEditable, SeguimientoEditable } from '@/components/presupuesto/seguimiento-editable'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const p = await getPresupuesto((await params).id)
@@ -76,7 +76,7 @@ export default async function PresupuestoPage({ params }: { params: Promise<{ id
         </Dato>
         <Dato etiqueta="Estado">
           <div className="pt-0.5">{activo ? <SelectorEstado presupuesto={conCliente} hoy={hoy} /> : <EstadoPresupuestoLabel estado={p.estado} className="text-[15px]" />}</div>
-          <span className="mt-2 block text-[12.5px] text-ink-3">{p.fechaEnvio ? `Enviado el ${fechaCorta(p.fechaEnvio)} · ${relativo(p.fechaEnvio)}` : 'Sin enviar'}</span>
+          {p.fechaEnvio ? <FechaEnvioEditable presupuestoId={p.id} fecha={p.fechaEnvio} hoy={hoy} /> : <span className="mt-2 block text-[12.5px] text-ink-3">Sin enviar</span>}
         </Dato>
         <Dato etiqueta="Próximo seguimiento">{activo ? <SeguimientoEditable presupuestoId={p.id} fecha={p.proximoSeguimiento} hoy={hoy} /> : <span className="font-serif text-[26px] leading-none text-ink-3">—</span>}</Dato>
         <Dato etiqueta="Equipo">

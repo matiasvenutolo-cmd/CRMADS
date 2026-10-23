@@ -91,7 +91,7 @@ export default async function HoyPage() {
                 <SurfaceHeader titulo={`Enviados sin próximo paso · ${d.sinProximoPaso.length}`} />
                 <p className="px-5 pt-3 text-[13px] text-ink-3">Presupuestos enviados que no tienen fecha para volver a llamar.</p>
                 <ul className="divide-y divide-line">
-                  {d.sinProximoPaso.map((p) => (
+                  {d.sinProximoPaso.slice(0, 5).map((p) => (
                     <li key={p.id} className="flex flex-col gap-3 px-5 py-3.5 sm:flex-row sm:items-center">
                       <Link href={`/presupuestos/${p.id}`} className="group min-w-0 flex-1">
                         <p className="truncate text-[14.5px] font-medium text-ink group-hover:underline">{p.clienteNombre}</p>
@@ -104,6 +104,11 @@ export default async function HoyPage() {
                     </li>
                   ))}
                 </ul>
+                {d.sinProximoPaso.length > 5 && (
+                  <Link href="/presupuestos?filtro=activos" className="flex items-center justify-center gap-1 border-t border-line px-5 py-3 text-[13px] font-medium text-accent hover:bg-subtle">
+                    Ver los {d.sinProximoPaso.length} en Presupuestos <ArrowUpRight className="size-3.5" />
+                  </Link>
+                )}
               </Surface>
             )}
 

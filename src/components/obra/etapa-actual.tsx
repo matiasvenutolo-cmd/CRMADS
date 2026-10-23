@@ -2,14 +2,14 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, MoreHorizontal, Pencil, Undo2, PartyPopper } from 'lucide-react'
+import { ArrowRight, MoreHorizontal, Pencil, Undo2, PartyPopper, ListOrdered } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Menu, MenuItem } from '@/components/ui/menu'
 import { Panel } from '@/components/ui/panel'
-import { Field, Input, Textarea } from '@/components/ui/field'
+import { Field, Input, Select, Textarea } from '@/components/ui/field'
 import { useToast } from '@/components/ui/toast'
 import { ObraForm } from '@/components/forms/obra-form'
-import { completarEtapa, volverEtapa } from '@/lib/actions/obras'
+import { completarEtapa, fijarEtapaActual, volverEtapa } from '@/lib/actions/obras'
 import { fechaCorta, relativo } from '@/lib/fechas'
 import type { Etapa, Obra } from '@/lib/db/schema'
 
@@ -17,7 +17,8 @@ export function EtapaActual({ obra, etapas, hoy }: { obra: Obra; etapas: Etapa[]
   const router = useRouter()
   const toast = useToast()
   const [pendiente, start] = useTransition()
-  const [modal, setModal] = useState<'completar' | 'editar' | null>(null)
+  const [modal, setModal] = useState<'completar' | 'editar' | 'cambiar' | null>(null)
+  const [destino, setDestino] = useState('1')
   const [fecha, setFecha] = useState(hoy)
   const [nota, setNota] = useState('')
 
@@ -100,6 +101,16 @@ export function EtapaActual({ obra, etapas, hoy }: { obra: Obra; etapas: Etapa[]
                 <MenuItem icono={<Pencil />} onClick={() => (cerrar(), setModal('editar'))}>
                   Editar datos de la obra
                 </MenuItem>
+                <MenuItem
+                  icono={<ListOrdered />}
+                  onClick={() => {
+                    cerrar()
+                    setDestino(String(actual?.orden ?? total))
+                    setModal('cambiar')
+                  }}
+                >
+                  Cambiar etapa actual
+                </MenuItem>
                 {etapas.some((e) => e.estado === 'completa') && (
                   <MenuItem icono={<Undo2 />} onClick={() => (cerrar(), volver())}>
                     Volver a la etapa anterior
@@ -139,6 +150,45 @@ export function EtapaActual({ obra, etapas, hoy }: { obra: Obra; etapas: Etapa[]
             <Textarea id="ce-nota" rows={2} value={nota} onChange={(e) => setNota(e.target.value)} />
           </Field>
         </div>
+      </Panel>
+
+      <Panel
+        abierto={modal === 'cambiar'}
+        onCerrar={() => setModal(null)}
+        titulo="Cambiar etapa actual"
+        descripcion="Para ubicar la obra en la etapa en la que realmente está. Las anteriores quedan completas y las siguientes, pendientes."
+        pie={
+          <>
+            <Button variante="ghost" onClick={() => setModal(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variante="primary"
+              cargando={pendiente}
+              onClick={() =>
+                start(async () => {
+                  const r = await fijarEtapaActual(obra.id, Number(destino))
+                  if (!r.ok) return toast(r.error, 'error')
+                  setModal(null)
+                  toast(`Obra en la etapa ${destino}`)
+                  router.refresh()
+                })
+              }
+            >
+              Guardar
+            </Button>
+          </>
+        }
+      >
+        <Field label="Etapa actual" htmlFor="cambiar-etapa">
+          <Select id="cambiar-etapa" value={destino} onChange={(e) => setDestino(e.target.value)}>
+            {etapas.map((e) => (
+              <option key={e.id} value={e.orden}>
+                {e.orden}. {e.nombre}
+              </option>
+            ))}
+          </Select>
+        </Field>
       </Panel>
 
       {modal === 'editar' && <ObraForm abierto onCerrar={() => setModal(null)} opciones={[]} hoy={hoy} existente={obra} />}

@@ -43,8 +43,9 @@ export function PresupuestoForm({
   const [tipologia, setTipologia] = useState(existente?.tipologia ?? '')
   const [cantidad, setCantidad] = useState(String(existente?.cantidadEquipos ?? 1))
   const [monto, setMonto] = useState(existente?.monto != null ? formatearMonto(String(Math.round(existente.monto))) : '')
-  const [moneda, setMoneda] = useState<'ARS' | 'USD'>((existente?.moneda as 'ARS' | 'USD') ?? 'ARS')
+  const [moneda, setMoneda] = useState<'ARS' | 'USD'>((existente?.moneda as 'ARS' | 'USD') ?? 'USD')
   const [estado, setEstado] = useState<'borrador' | 'enviado'>('enviado')
+  const [fechaEnvio, setFechaEnvio] = useState(existente ? (existente.fechaEnvio ?? '') : hoy)
   const [seguimiento, setSeguimiento] = useState<string | null>(existente ? existente.proximoSeguimiento : sumarDias(hoy, 7))
   const [tecnicos, setTecnicos] = useState({ cargaKg: existente?.cargaKg?.toString() ?? '', paradas: existente?.paradas?.toString() ?? '', velocidad: existente?.velocidad ?? '' })
   const [notas, setNotas] = useState(existente?.notas ?? '')
@@ -62,6 +63,7 @@ export function PresupuestoForm({
       monto: monto.replace(/\./g, ''),
       moneda,
       estado,
+      fechaEnvio: existente || estado === 'enviado' ? fechaEnvio : '',
       proximoSeguimiento: seguimiento ?? undefined,
       notas,
       ...tecnicos,
@@ -166,6 +168,12 @@ export function PresupuestoForm({
               ]}
               className="w-full"
             />
+          </Field>
+        )}
+
+        {(existente ? existente.estado !== 'borrador' || fechaEnvio : estado === 'enviado') && (
+          <Field label="Fecha de envío" htmlFor="p-envio" hint={existente ? undefined : 'Si lo mandaste antes, poné la fecha real.'}>
+            <Input id="p-envio" type="date" value={fechaEnvio} max={hoy} onChange={(e) => setFechaEnvio(e.target.value)} className="w-48" />
           </Field>
         )}
 

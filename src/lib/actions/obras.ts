@@ -159,3 +159,25 @@ export async function registrarNotaObra(obraId: string, tipo: TipoContacto, text
   revalidatePath('/', 'layout')
   return { ok: true }
 }
+
+/** Ubica la obra en una etapa (para obras cargadas en la etapa equivocada). */
+export async function fijarEtapaActual(obraId: string, orden: number): Promise<Resultado> {
+  const u = await getUsuarioActual()
+  const lista = await db.select().from(etapas).where(eq(etapas.obraId, obraId)).orderBy(asc(etapas.orden))
+  const destino = lista.find((e) => e.orden === orden)
+  if (!destino) return { ok: false, error: 'Etapa no válida.' }
+  const anterior = lista.find((e) => e.estado === 'en_curso')
+  if (anterior?.orden === orden) return { ok: true }
+
+  await db.transaction(async (tx) => {
+    for (const e of lista) {
+      if (e.orden < orden && e.estado !== 'completa') await tx.update(etapas).set({ estado: 'completa' }).where(eq(etapas.id, e.id))
+      if (e.orden === orden) await tx.update(etapas).set({ estado: 'en_curso', fechaFin: null }).where(eq(etapas.id, e.id))
+      if (e.orden > orden && e.estado !== 'pendiente') await tx.update(etapas).set({ estado: 'pendiente', fechaInicio: null, fechaFin: null }).where(eq(etapas.id, e.id))
+    }
+    await tx.update(obras).set({ estado: 'en_curso', fechaFin: null, updatedAt: new Date() }).where(eq(obras.id, obraId))
+    await registrarEvento(tx, { obraId, tipo: 'etapa', texto: `Etapa actual cambiada a ${orden}: ${destino.nombre}`, usuarioId: u.id })
+  })
+  revalidatePath('/', 'layout')
+  return { ok: true }
+}

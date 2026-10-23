@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { reprogramarSeguimiento } from '@/lib/actions/presupuestos'
+import { cambiarFechaEnvio, reprogramarSeguimiento } from '@/lib/actions/presupuestos'
 import { fechaCorta, relativo } from '@/lib/fechas'
 import { cn } from '@/lib/utils'
 
@@ -25,6 +25,32 @@ export function SeguimientoEditable({ presupuestoId, fecha, hoy }: { presupuesto
         }
         className="absolute inset-0 cursor-pointer opacity-0"
         aria-label="Próximo seguimiento"
+      />
+    </label>
+  )
+}
+
+export function FechaEnvioEditable({ presupuestoId, fecha, hoy }: { presupuestoId: string; fecha: string; hoy: string }) {
+  const router = useRouter()
+  const [pendiente, start] = useTransition()
+  return (
+    <label className={cn('group relative mt-2 inline-flex cursor-pointer text-[12.5px] text-ink-3', pendiente && 'opacity-50')}>
+      <span className="group-hover:text-accent group-hover:underline">
+        Enviado el {fechaCorta(fecha)} · {relativo(fecha)}
+      </span>
+      <input
+        type="date"
+        value={fecha}
+        max={hoy}
+        onChange={(e) =>
+          e.target.value &&
+          start(async () => {
+            await cambiarFechaEnvio(presupuestoId, e.target.value)
+            router.refresh()
+          })
+        }
+        className="absolute inset-0 cursor-pointer opacity-0"
+        aria-label="Fecha de envío"
       />
     </label>
   )

@@ -35,6 +35,8 @@ function validar(i: PresupuestoInput) {
   if (!tipologia) return { error: 'Elegí la tipología.' }
   const montoNum = i.monto === '' || i.monto == null ? null : Number(String(i.monto).replace(/\./g, '').replace(',', '.'))
   if (montoNum != null && (!Number.isFinite(montoNum) || montoNum < 0)) return { error: 'El monto no es válido.' }
+  const envio = fechaOpcional(i.fechaEnvio)
+  if (envio && envio > hoyISO()) return { error: 'La fecha de envío no puede ser futura.' }
   return {
     datos: {
       direccion,
@@ -87,7 +89,11 @@ export async function editarPresupuesto(id: string, input: PresupuestoInput): Pr
   if (!previo) return { ok: false, error: 'No existe el presupuesto.' }
 
   await db.transaction(async (tx) => {
-    await tx.update(presupuestos).set({ ...v.datos, updatedAt: new Date() }).where(eq(presupuestos.id, id))
+    const fechaEnvio = input.fechaEnvio === undefined ? previo.fechaEnvio : v.datos.fechaEnvio
+    await tx.update(presupuestos).set({ ...v.datos, fechaEnvio, updatedAt: new Date() }).where(eq(presupuestos.id, id))
+    if (fechaEnvio !== previo.fechaEnvio) {
+      await registrarEvento(tx, { presupuestoId: id, tipo: 'sistema', texto: fechaEnvio ? `Fecha de envío: ${fechaCorta(fechaEnvio)}` : 'Fecha de envío borrada', usuarioId: u.id })
+    }
     if ((previo.monto ?? null) !== v.datos.monto || previo.moneda !== v.datos.moneda) {
       await registrarEvento(tx, {
         presupuestoId: id,
@@ -171,13 +177,14 @@ export async function marcarPerdido(id: string, motivo: string, nota: string): P
   return { ok: true }
 }
 
-export async function ganarYCrearObra(id: string, opciones: { fechaInicio: string; fechaFinEstimada?: string }): Promise<Resultado<{ obraId: string }>> {
+export async function ganarYCrearObra(id: string, opciones: { fechaInicio: string; fechaFinEstimada?: string; etapaActual?: number }): Promise<Resultado<{ obraId: string }>> {
   const u = await getUsuarioActual()
   const p = await db.query.presupuestos.findFirst({ where: eq(presupuestos.id, id) })
   if (!p) return { ok: false, error: 'No existe el presupuesto.' }
   const existente = await db.query.obras.findFirst({ where: eq(obras.presupuestoId, id), columns: { id: true } })
   if (existente) return { ok: true, data: { obraId: existente.id } }
   const inicio = fechaOpcional(opciones.fechaInicio) ?? hoyISO()
+  const actual = Math.min(Math.max(Number(opciones.etapaActual) || 1, 1), ETAPAS_OBRA.length)
 
   const obraId = await db.transaction(async (tx) => {
     await tx.update(presupuestos).set({ estado: 'ganado', proximoSeguimiento: null, motivoPerdida: null, updatedAt: new Date() }).where(eq(presupuestos.id, id))
@@ -198,10 +205,21 @@ export async function ganarYCrearObra(id: string, opciones: { fechaInicio: strin
       })
       .returning({ id: obras.id, numero: obras.numero })
     await tx.insert(etapas).values(
-      ETAPAS_OBRA.map((nombre, i) => ({ obraId: o.id, orden: i + 1, nombre, estado: i === 0 ? 'en_curso' : 'pendiente', fechaInicio: i === 0 ? inicio : null }))
+      ETAPAS_OBRA.map((nombre, i) => ({
+        obraId: o.id,
+        orden: i + 1,
+        nombre,
+        estado: i + 1 < actual ? 'completa' : i + 1 === actual ? 'en_curso' : 'pendiente',
+        fechaInicio: i === 0 || i + 1 === actual ? (actual === 1 ? inicio : null) : null,
+      }))
     )
     await registrarEvento(tx, { presupuestoId: id, tipo: 'estado', texto: `Ganado · se creó la obra ${codigoObra(o.numero)}`, usuarioId: u.id })
-    await registrarEvento(tx, { obraId: o.id, tipo: 'sistema', texto: 'Obra iniciada a partir del presupuesto aprobado', usuarioId: u.id })
+    await registrarEvento(tx, {
+      obraId: o.id,
+      tipo: 'sistema',
+      texto: actual === 1 ? 'Obra iniciada a partir del presupuesto aprobado' : `Obra creada desde el presupuesto, en la etapa ${actual}: ${ETAPAS_OBRA[actual - 1]}`,
+      usuarioId: u.id,
+    })
     return o.id
   })
 
@@ -214,6 +232,19 @@ export async function reabrirPresupuesto(id: string): Promise<Resultado> {
   await db.transaction(async (tx) => {
     await tx.update(presupuestos).set({ estado: 'negociacion', motivoPerdida: null, updatedAt: new Date() }).where(eq(presupuestos.id, id))
     await registrarEvento(tx, { presupuestoId: id, tipo: 'estado', texto: 'Reabierto, pasó a en negociación', usuarioId: u.id })
+  })
+  revalidatePath('/', 'layout')
+  return { ok: true }
+}
+
+export async function cambiarFechaEnvio(id: string, fecha: string): Promise<Resultado> {
+  const u = await getUsuarioActual()
+  const f = fechaOpcional(fecha)
+  if (!f) return { ok: false, error: 'Fecha no válida.' }
+  if (f > hoyISO()) return { ok: false, error: 'La fecha de envío no puede ser futura.' }
+  await db.transaction(async (tx) => {
+    await tx.update(presupuestos).set({ fechaEnvio: f, updatedAt: new Date() }).where(eq(presupuestos.id, id))
+    await registrarEvento(tx, { presupuestoId: id, tipo: 'sistema', texto: `Fecha de envío: ${fechaCorta(f)}`, usuarioId: u.id })
   })
   revalidatePath('/', 'layout')
   return { ok: true }
