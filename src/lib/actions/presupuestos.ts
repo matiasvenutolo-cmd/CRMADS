@@ -5,12 +5,13 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db/client'
 import { clientes, etapas, obras, presupuestos } from '@/lib/db/schema'
 import { getUsuarioActual } from '@/lib/session'
-import { ESTADOS_PRESUPUESTO, ETAPAS_OBRA, TIPOS_CONTACTO, codigoObra, type EstadoPresupuesto, type TipoContacto } from '@/lib/dominio'
+import { ESTADOS_PRESUPUESTO, ETAPAS_OBRA, TIPOS_CONTACTO, codigoObra, normalizarNumeroAds, type EstadoPresupuesto, type TipoContacto } from '@/lib/dominio'
 import { dinero } from '@/lib/formato'
 import { fechaCorta, hoyISO } from '@/lib/fechas'
 import { enteroOpcional, fechaOpcional, registrarEvento, textoLimpio, type Resultado } from './comun'
 
 export type PresupuestoInput = {
+  numeroAds?: string
   clienteId?: string
   clienteNuevo?: string
   direccion: string
@@ -31,7 +32,7 @@ export type PresupuestoInput = {
 function validar(i: PresupuestoInput) {
   const direccion = textoLimpio(i.direccion)
   const tipologia = textoLimpio(i.tipologia)
-  if (!direccion) return { error: 'Falta la dirección de la obra.' }
+  if (!direccion) return { error: 'Falta la obra o dirección.' }
   if (!tipologia) return { error: 'Elegí la tipología.' }
   const montoNum = i.monto === '' || i.monto == null ? null : Number(String(i.monto).replace(/\./g, '').replace(',', '.'))
   if (montoNum != null && (!Number.isFinite(montoNum) || montoNum < 0)) return { error: 'El monto no es válido.' }
@@ -39,6 +40,7 @@ function validar(i: PresupuestoInput) {
   if (envio && envio > hoyISO()) return { error: 'La fecha de envío no puede ser futura.' }
   return {
     datos: {
+      numeroAds: normalizarNumeroAds(i.numeroAds),
       direccion,
       localidad: textoLimpio(i.localidad),
       tipologia,
@@ -90,7 +92,8 @@ export async function editarPresupuesto(id: string, input: PresupuestoInput): Pr
 
   await db.transaction(async (tx) => {
     const fechaEnvio = input.fechaEnvio === undefined ? previo.fechaEnvio : v.datos.fechaEnvio
-    await tx.update(presupuestos).set({ ...v.datos, fechaEnvio, updatedAt: new Date() }).where(eq(presupuestos.id, id))
+    const numeroAds = input.numeroAds === undefined ? previo.numeroAds : v.datos.numeroAds
+    await tx.update(presupuestos).set({ ...v.datos, fechaEnvio, numeroAds, updatedAt: new Date() }).where(eq(presupuestos.id, id))
     if (fechaEnvio !== previo.fechaEnvio) {
       await registrarEvento(tx, { presupuestoId: id, tipo: 'sistema', texto: fechaEnvio ? `Fecha de envío: ${fechaCorta(fechaEnvio)}` : 'Fecha de envío borrada', usuarioId: u.id })
     }

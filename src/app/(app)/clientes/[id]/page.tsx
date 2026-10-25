@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCliente } from '@/lib/data/clientes'
-import { codigoObra, codigoPresupuesto } from '@/lib/dominio'
+import { codigoObra, etiquetaPresupuesto } from '@/lib/dominio'
 import { dinero } from '@/lib/formato'
 import { PageHead } from '@/components/comun/page-head'
 import { Surface, SurfaceHeader } from '@/components/ui/surface'
@@ -65,7 +65,7 @@ export default async function ClientePage({ params }: { params: Promise<{ id: st
                       <span className="min-w-0">
                         <span className="block truncate text-[14.5px] font-medium text-ink">{p.direccion}</span>
                         <span className="block truncate text-[13px] text-ink-3">
-                          <span className="font-mono text-[11.5px]">{codigoPresupuesto(p.numero)}</span> · {p.tipologia}
+                          <span className="font-mono text-[11.5px]">{etiquetaPresupuesto(p)}</span> · {p.tipologia}
                         </span>
                       </span>
                       <span className="tabular text-right text-[14px] font-medium text-ink">{p.monto == null ? '—' : dinero(p.monto, p.moneda)}</span>

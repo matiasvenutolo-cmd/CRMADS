@@ -37,6 +37,7 @@ export function PresupuestoForm({
   const [pendiente, start] = useTransition()
   const [error, setError] = useState<string>()
 
+  const [numeroAds, setNumeroAds] = useState(existente?.numeroAds ?? '')
   const [cliente, setCliente] = useState<ValorCliente>(existente ? { id: existente.clienteId, nombre: existente.clienteNombre } : null)
   const [direccion, setDireccion] = useState(existente?.direccion ?? '')
   const [localidad, setLocalidad] = useState(existente?.localidad ?? '')
@@ -54,6 +55,7 @@ export function PresupuestoForm({
     setError(undefined)
     if (!existente && !cliente) return setError('Elegí o creá el cliente.')
     const datos = {
+      numeroAds,
       clienteId: cliente?.id,
       clienteNuevo: cliente?.nuevo,
       direccion,
@@ -110,9 +112,16 @@ export function PresupuestoForm({
           </Field>
         )}
 
+        <Field label="N° ADS" htmlFor="p-ads" hint="El número interno del presupuesto. Si subís el archivo «ADS 8608…», se completa solo.">
+          <div className="relative w-44">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[13px] text-ink-3">ADS</span>
+            <Input id="p-ads" value={numeroAds} onChange={(e) => setNumeroAds(e.target.value.replace(/^ads[\s\-_.]*/i, ''))} placeholder="8608" className="pl-12 font-mono tracking-wide" />
+          </div>
+        </Field>
+
         <div className="grid grid-cols-[1fr_auto] gap-3 sm:grid-cols-[1fr_180px]">
-          <Field label="Dirección de la obra" htmlFor="p-dir">
-            <Input id="p-dir" value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Av. Mitre 2140" />
+          <Field label="Obra o dirección" htmlFor="p-dir">
+            <Input id="p-dir" value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Av. Mitre 2140, o el nombre del edificio" />
           </Field>
           <Field label="Localidad" htmlFor="p-loc" className="w-36 sm:w-auto">
             <Input id="p-loc" list="localidades" value={localidad} onChange={(e) => setLocalidad(e.target.value)} placeholder="Avellaneda" />

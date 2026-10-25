@@ -75,8 +75,8 @@ export function ObraForm({ abierto, onCerrar, opciones, hoy, existente }: { abie
           </Field>
         )}
         <div className="grid grid-cols-[1fr_auto] gap-3 sm:grid-cols-[1fr_180px]">
-          <Field label="Dirección de la obra" htmlFor="o-dir">
-            <Input id="o-dir" value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Av. Mitre 2140" />
+          <Field label="Obra o dirección" htmlFor="o-dir">
+            <Input id="o-dir" value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Av. Mitre 2140, o el nombre del edificio" />
           </Field>
           <Field label="Localidad" htmlFor="o-loc" className="w-36 sm:w-auto">
             <Input id="o-loc" list="localidades-o" value={localidad} onChange={(e) => setLocalidad(e.target.value)} />

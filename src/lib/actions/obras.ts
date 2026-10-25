@@ -28,7 +28,7 @@ export type ObraInput = {
 function validar(i: ObraInput) {
   const direccion = textoLimpio(i.direccion)
   const tipologia = textoLimpio(i.tipologia)
-  if (!direccion) return { error: 'Falta la dirección de la obra.' }
+  if (!direccion) return { error: 'Falta la obra o dirección.' }
   if (!tipologia) return { error: 'Elegí la tipología.' }
   return {
     datos: {

@@ -4,7 +4,7 @@ import { ArrowUpRight, CircleCheck } from 'lucide-react'
 import { datosHoy, hayDatos } from '@/lib/data/hoy'
 import { getUsuarioActual } from '@/lib/session'
 import { fechaCorta, fechaLarga, relativo } from '@/lib/fechas'
-import { codigoObra, codigoPresupuesto } from '@/lib/dominio'
+import { codigoObra, etiquetaPresupuesto } from '@/lib/dominio'
 import { dinero, dineroCompacto } from '@/lib/formato'
 import { Surface, SurfaceHeader } from '@/components/ui/surface'
 import { Aviso } from '@/components/ui/estado'
@@ -73,7 +73,7 @@ export default async function HoyPage() {
                           <p className="truncate text-[15px] font-medium text-ink group-hover:underline">{p.clienteNombre}</p>
                           <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[13px] text-ink-3">
                             <span className="truncate">{p.direccion}</span>
-                            <Codigo>{codigoPresupuesto(p.numero)}</Codigo>
+                            <Codigo>{etiquetaPresupuesto(p)}</Codigo>
                             {p.monto != null && <span className="tabular">{dinero(p.monto, p.moneda)}</span>}
                           </p>
                           <p className="mt-1.5">{vencido ? <Aviso>Vencido {relativo(p.proximoSeguimiento!)}</Aviso> : <Aviso tono="accent">Para hoy</Aviso>}</p>

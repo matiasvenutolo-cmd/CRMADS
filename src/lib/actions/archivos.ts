@@ -4,7 +4,8 @@ import { eq } from 'drizzle-orm'
 import { del } from '@vercel/blob'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db/client'
-import { archivos } from '@/lib/db/schema'
+import { archivos, presupuestos } from '@/lib/db/schema'
+import { numeroAdsDeArchivo } from '@/lib/dominio'
 import { getUsuarioActual } from '@/lib/session'
 import { registrarEvento, type Resultado } from './comun'
 
@@ -27,6 +28,14 @@ export async function registrarArchivos(destino: { presupuestoId?: string; obraI
         usuarioId: u.id,
       }))
     )
+    if (destino.presupuestoId) {
+      const p = await tx.query.presupuestos.findFirst({ where: eq(presupuestos.id, destino.presupuestoId), columns: { numeroAds: true } })
+      const numeros = [...new Set(lista.map((a) => numeroAdsDeArchivo(a.nombre)).filter((n): n is string => Boolean(n)))]
+      if (p && !p.numeroAds && numeros.length === 1) {
+        await tx.update(presupuestos).set({ numeroAds: numeros[0] }).where(eq(presupuestos.id, destino.presupuestoId))
+        await registrarEvento(tx, { presupuestoId: destino.presupuestoId, tipo: 'sistema', texto: `N° ADS ${numeros[0]}, tomado del nombre del archivo`, usuarioId: u.id })
+      }
+    }
     const fotos = lista.filter((a) => a.contentType.startsWith('image/')).length
     const docs = lista.length - fotos
     const partes = [fotos && `${fotos} foto${fotos > 1 ? 's' : ''}`, docs && `${docs} archivo${docs > 1 ? 's' : ''}`].filter(Boolean)

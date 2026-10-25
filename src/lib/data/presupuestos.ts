@@ -13,13 +13,14 @@ export async function listarPresupuestos(filtro: FiltroPresupuestos, q?: string)
   if (filtro === 'perdidos') condiciones.push(eq(presupuestos.estado, 'perdido'))
   if (q?.trim()) {
     const like = `%${q.trim()}%`
-    condiciones.push(or(ilike(clientes.nombre, like), ilike(presupuestos.direccion, like), ilike(presupuestos.localidad, like), sql`'P-' || lpad(${presupuestos.numero}::text, 4, '0') ilike ${like}`))
+    condiciones.push(or(ilike(clientes.nombre, like), ilike(presupuestos.direccion, like), ilike(presupuestos.localidad, like), sql`'P-' || lpad(${presupuestos.numero}::text, 4, '0') ilike ${like}`, sql`'ADS ' || ${presupuestos.numeroAds} ilike ${like}`, ilike(presupuestos.numeroAds, `%${q.trim().replace(/^ads[\s\-_.]*/i, '')}%`)))
   }
 
   return db
     .select({
       id: presupuestos.id,
       numero: presupuestos.numero,
+      numeroAds: presupuestos.numeroAds,
       direccion: presupuestos.direccion,
       localidad: presupuestos.localidad,
       tipologia: presupuestos.tipologia,

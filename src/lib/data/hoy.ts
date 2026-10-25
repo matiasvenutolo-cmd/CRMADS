@@ -8,6 +8,7 @@ import { hoyISO, sumarDias } from '@/lib/fechas'
 const columnasPresupuesto = {
   id: presupuestos.id,
   numero: presupuestos.numero,
+  numeroAds: presupuestos.numeroAds,
   direccion: presupuestos.direccion,
   estado: presupuestos.estado,
   monto: presupuestos.monto,

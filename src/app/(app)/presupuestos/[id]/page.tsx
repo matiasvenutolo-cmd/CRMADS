@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 import { ContactoRapido } from '@/components/comun/contacto-rapido'
 import { getPresupuesto } from '@/lib/data/presupuestos'
-import { codigoObra, codigoPresupuesto } from '@/lib/dominio'
+import { codigoObra, codigoPresupuesto, etiquetaPresupuesto, velocidadLegible } from '@/lib/dominio'
 import { dinero } from '@/lib/formato'
 import { hoyISO } from '@/lib/fechas'
 import { PageHead, Codigo } from '@/components/comun/page-head'
@@ -18,7 +18,7 @@ import { FechaEnvioEditable, SeguimientoEditable } from '@/components/presupuest
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const p = await getPresupuesto((await params).id)
-  return { title: p ? codigoPresupuesto(p.numero) : 'Presupuesto' }
+  return { title: p ? etiquetaPresupuesto(p) : 'Presupuesto' }
 }
 
 export default async function PresupuestoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -40,7 +40,8 @@ export default async function PresupuestoPage({ params }: { params: Promise<{ id
               {p.cliente.nombre}
             </Link>
             <span aria-hidden>·</span>
-            <Codigo>{codigoPresupuesto(p.numero)}</Codigo>
+            <Codigo>{etiquetaPresupuesto(p)}</Codigo>
+            {p.numeroAds && <Codigo>{codigoPresupuesto(p.numero)}</Codigo>}
           </>
         }
         titulo={
@@ -82,7 +83,7 @@ export default async function PresupuestoPage({ params }: { params: Promise<{ id
         <Dato etiqueta="Equipo">
           <span className="block text-[15px] font-medium leading-snug text-ink">{p.tipologia}</span>
           <span className="mt-1 block text-[12.5px] text-ink-3">
-            {[p.cantidadEquipos > 1 ? `${p.cantidadEquipos} equipos` : '1 equipo', p.cargaKg && `${p.cargaKg} kg`, p.paradas && `${p.paradas} paradas`, p.velocidad].filter(Boolean).join(' · ')}
+            {[p.cantidadEquipos > 1 ? `${p.cantidadEquipos} equipos` : '1 equipo', p.cargaKg && `${p.cargaKg} kg`, p.paradas && `${p.paradas} paradas`, velocidadLegible(p.velocidad)].filter(Boolean).join(' · ')}
           </span>
         </Dato>
       </Surface>

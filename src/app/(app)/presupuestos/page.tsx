@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FileText } from 'lucide-react'
 import { listarPresupuestos, contarPresupuestos, type FiltroPresupuestos } from '@/lib/data/presupuestos'
-import { codigoPresupuesto } from '@/lib/dominio'
+import { etiquetaPresupuesto } from '@/lib/dominio'
 import { dinero } from '@/lib/formato'
 import { fechaCorta, hoyISO, relativo } from '@/lib/fechas'
 import { PageHead } from '@/components/comun/page-head'
@@ -73,7 +73,7 @@ export default async function PresupuestosPage({ searchParams }: { searchParams:
                             {p.direccion}
                             {p.localidad ? `, ${p.localidad}` : ''}
                           </span>
-                          <span className="shrink-0 font-mono text-[11.5px]">{codigoPresupuesto(p.numero)}</span>
+                          <span className="shrink-0 font-mono text-[11.5px]">{etiquetaPresupuesto(p)}</span>
                         </span>
                       </span>
                       <span className="hidden truncate text-[13.5px] text-ink-2 md:block">

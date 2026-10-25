@@ -26,6 +26,7 @@ export const presupuestos = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     numero: integer('numero').generatedAlwaysAsIdentity().notNull(),
+    numeroAds: text('numero_ads'),
     clienteId: uuid('cliente_id').notNull().references(() => clientes.id),
     direccion: text('direccion').notNull(),
     localidad: text('localidad'),
@@ -44,7 +45,7 @@ export const presupuestos = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('presupuestos_cliente_idx').on(t.clienteId), index('presupuestos_estado_idx').on(t.estado)]
+  (t) => [index('presupuestos_cliente_idx').on(t.clienteId), index('presupuestos_estado_idx').on(t.estado), index('presupuestos_numero_ads_idx').on(t.numeroAds)]
 )
 
 export const obras = pgTable(

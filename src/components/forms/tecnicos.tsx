@@ -25,8 +25,8 @@ export function CamposTecnicos({ valor, onChange, abiertoInicial }: { valor: Tec
           <Field label="Paradas" htmlFor="t-paradas">
             <Input id="t-paradas" inputMode="numeric" value={valor.paradas} onChange={(e) => onChange({ ...valor, paradas: e.target.value.replace(/\D/g, '') })} placeholder="8" />
           </Field>
-          <Field label="Velocidad" htmlFor="t-vel">
-            <Input id="t-vel" value={valor.velocidad} onChange={(e) => onChange({ ...valor, velocidad: e.target.value })} placeholder="1 m/s" />
+          <Field label="Velocidad (m/s)" htmlFor="t-vel">
+            <Input id="t-vel" value={valor.velocidad} onChange={(e) => onChange({ ...valor, velocidad: e.target.value })} inputMode="decimal" placeholder="1" />
           </Field>
         </div>
       )}

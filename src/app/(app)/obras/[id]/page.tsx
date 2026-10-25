@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getObra } from '@/lib/data/obras'
-import { codigoObra, codigoPresupuesto } from '@/lib/dominio'
+import { codigoObra, etiquetaPresupuesto, velocidadLegible } from '@/lib/dominio'
 import { dinero } from '@/lib/formato'
 import { fechaCorta, hoyISO } from '@/lib/fechas'
 import { PageHead, Codigo } from '@/components/comun/page-head'
@@ -32,7 +32,7 @@ export default async function ObraPage({ params }: { params: Promise<{ id: strin
     ['Equipos', String(o.cantidadEquipos)],
     ['Carga', o.cargaKg ? `${o.cargaKg} kg` : null],
     ['Paradas', o.paradas ? String(o.paradas) : null],
-    ['Velocidad', o.velocidad],
+    ['Velocidad', velocidadLegible(o.velocidad)],
     ['Inicio', fechaCorta(o.fechaInicio)],
     ['Puesta en marcha estimada', o.fechaFinEstimada ? fechaCorta(o.fechaFinEstimada) : null],
   ].filter((f): f is [string, string] => Boolean(f[1]))
@@ -52,7 +52,7 @@ export default async function ObraPage({ params }: { params: Promise<{ id: strin
               <>
                 <span aria-hidden>·</span>
                 <Link href={`/presupuestos/${o.presupuesto.id}`} className="hover:text-ink hover:underline">
-                  desde <span className="font-mono text-[12px]">{codigoPresupuesto(o.presupuesto.numero)}</span>
+                  desde <span className="font-mono text-[12px]">{etiquetaPresupuesto(o.presupuesto)}</span>
                 </Link>
               </>
             )}
