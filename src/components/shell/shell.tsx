@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Plus, Search, FileText, HardHat, Building2, KeyRound, LogOut, ChevronDown } from 'lucide-react'
-import { NAV, NAV_DIRECCION, activo } from './nav'
+import { NAV, NAV_DIRECCION, NAV_GESTION, activo } from './nav'
 import { useNuevo } from './nuevo'
 import { useBusqueda } from './busqueda'
 import { Menu, MenuItem } from '@/components/ui/menu'
@@ -15,7 +15,7 @@ import { useState } from 'react'
 import { CambiarPassword } from './cambiar-password'
 
 export function Shell({ nombre, direccion, children }: { nombre: string; direccion: boolean; children: React.ReactNode }) {
-  const items = direccion ? NAV_DIRECCION : NAV
+  const items = direccion ? NAV_DIRECCION : NAV_GESTION
   const pathname = usePathname()
   const { abrir } = useNuevo()
   const { abrir: abrirBusqueda } = useBusqueda()

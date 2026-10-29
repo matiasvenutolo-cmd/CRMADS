@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
 import { datosTablero } from '@/lib/data/tablero'
 import { getUsuarioActual } from '@/lib/session'
 import { fechaLarga } from '@/lib/fechas'
@@ -21,7 +20,6 @@ function signo(v: number) {
 
 export default async function TableroPage() {
   const usuario = await getUsuarioActual()
-  if (usuario.rol !== 'direccion') redirect('/')
   const d = await datosTablero()
   const { resumen: r, cierre, salud, precios, obras, clientes } = d
   const nombre = usuario.nombre.split(' ')[0]

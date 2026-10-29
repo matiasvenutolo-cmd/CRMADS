@@ -48,6 +48,12 @@ export default async function HoyPage() {
           {saludo()}, {nombre}.
         </h1>
         <p className="mt-2 max-w-xl text-[15.5px] text-ink-2">{resumen}</p>
+        {conDatos && (
+          <Link href="/tablero" className="mt-3 inline-flex items-center gap-1 text-[14px] font-medium text-accent hover:underline md:hidden">
+            Ver el tablero del negocio
+            <ArrowUpRight className="size-4" />
+          </Link>
+        )}
       </header>
 
       {!conDatos ? (
