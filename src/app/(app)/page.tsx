@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { ArrowUpRight, CircleCheck } from 'lucide-react'
 import { datosHoy, hayDatos } from '@/lib/data/hoy'
 import { getUsuarioActual } from '@/lib/session'
@@ -25,6 +26,7 @@ function plural(n: number, uno: string, varios: string) {
 }
 
 export default async function HoyPage() {
+  if ((await getUsuarioActual()).rol === 'direccion') redirect('/tablero')
   const [usuario, d, conDatos] = await Promise.all([getUsuarioActual(), datosHoy(), hayDatos()])
   const nombre = usuario.nombre.split(' ')[0]
 

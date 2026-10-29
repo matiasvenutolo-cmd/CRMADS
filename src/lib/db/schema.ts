@@ -6,6 +6,8 @@ export const usuarios = pgTable('usuarios', {
   usuario: text('usuario').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   activo: boolean('activo').notNull().default(true),
+  // 'gestion': carga y sigue el día a día. 'direccion': ve el tablero del negocio.
+  rol: text('rol').notNull().default('gestion'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 

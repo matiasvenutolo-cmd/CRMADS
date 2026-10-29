@@ -1,6 +1,7 @@
 /**
  * Crea un usuario o le resetea la contraseña.
- *   npm run usuario -- <usuario> "<Nombre completo>"
+ *   npm run usuario -- <usuario> "<Nombre completo>" [--direccion]
+ * Con --direccion el usuario entra al tablero del negocio en lugar de «Hoy».
  * La contraseña se genera al azar y se guarda en .credenciales/<usuario>.txt
  * (ignorado por git) para no mostrarla en la terminal ni en logs.
  */
@@ -11,7 +12,9 @@ import { hashPassword } from '../src/lib/auth/hash'
 
 process.loadEnvFile('.env.local')
 
-const [usuario, nombre] = process.argv.slice(2)
+const args = process.argv.slice(2)
+const rol = args.includes('--direccion') ? 'direccion' : 'gestion'
+const [usuario, nombre] = args.filter((a) => !a.startsWith('--'))
 if (!usuario || !nombre) {
   console.error('Uso: npm run usuario -- <usuario> "<Nombre completo>"')
   process.exit(1)
@@ -23,9 +26,9 @@ const password = Array.from(randomBytes(14), (b) => alfabeto[b % alfabeto.length
 const sql = postgres(process.env.DATABASE_URL_UNPOOLED!, { prepare: false })
 const hash = await hashPassword(password)
 await sql`
-  insert into usuarios (nombre, usuario, password_hash)
-  values (${nombre}, ${usuario.toLowerCase()}, ${hash})
-  on conflict (usuario) do update set nombre = excluded.nombre, password_hash = excluded.password_hash, activo = true
+  insert into usuarios (nombre, usuario, password_hash, rol)
+  values (${nombre}, ${usuario.toLowerCase()}, ${hash}, ${rol})
+  on conflict (usuario) do update set nombre = excluded.nombre, password_hash = excluded.password_hash, rol = excluded.rol, activo = true
 `
 await sql.end()
 

@@ -15,6 +15,13 @@
       "when": 1792934350191,
       "tag": "0001_numero_ads",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793287710924,
+      "tag": "0002_rol_usuario",
+      "breakpoints": true
     }
   ]
 }

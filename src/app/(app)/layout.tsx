@@ -11,7 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <ToastProvider>
       <BusquedaProvider>
         <NuevoProvider hoy={hoyISO()}>
-          <Shell nombre={usuario.nombre}>{children}</Shell>
+          <Shell nombre={usuario.nombre} direccion={usuario.rol === 'direccion'}>{children}</Shell>
         </NuevoProvider>
       </BusquedaProvider>
     </ToastProvider>

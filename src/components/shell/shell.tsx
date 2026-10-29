@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Plus, Search, FileText, HardHat, Building2, KeyRound, LogOut, ChevronDown } from 'lucide-react'
-import { NAV, activo } from './nav'
+import { NAV, NAV_DIRECCION, activo } from './nav'
 import { useNuevo } from './nuevo'
 import { useBusqueda } from './busqueda'
 import { Menu, MenuItem } from '@/components/ui/menu'
@@ -14,7 +14,8 @@ import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import { CambiarPassword } from './cambiar-password'
 
-export function Shell({ nombre, children }: { nombre: string; children: React.ReactNode }) {
+export function Shell({ nombre, direccion, children }: { nombre: string; direccion: boolean; children: React.ReactNode }) {
+  const items = direccion ? NAV_DIRECCION : NAV
   const pathname = usePathname()
   const { abrir } = useNuevo()
   const { abrir: abrirBusqueda } = useBusqueda()
@@ -38,7 +39,7 @@ export function Shell({ nombre, children }: { nombre: string; children: React.Re
     <>
       <div className="px-2.5 pb-2 pt-1.5">
         <p className="text-[14px] font-medium text-ink">{nombre}</p>
-        <p className="text-[12.5px] text-ink-3">ADS Obras</p>
+        <p className="text-[12.5px] text-ink-3">{direccion ? 'Dirección · ADS Obras' : 'ADS Obras'}</p>
       </div>
       <div className="my-1 h-px bg-line" />
       <MenuItem icono={<KeyRound />} onClick={() => (cerrar(), setPassword(true))}>
@@ -54,13 +55,13 @@ export function Shell({ nombre, children }: { nombre: string; children: React.Re
     <div className="min-h-dvh">
       <header className="sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur-md supports-[backdrop-filter]:bg-canvas/75">
         <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-3 px-4 md:gap-6 md:px-8">
-          <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Inicio">
+          <Link href={direccion ? '/tablero' : '/'} className="flex shrink-0 items-center gap-2.5" aria-label="Inicio">
             <Image src="/logo/ads-logo.png" alt="ADS" width={48} height={27} priority />
             <span className="hidden font-serif text-[20px] uppercase leading-none tracking-[0.04em] text-ink lg:inline">Obras</span>
           </Link>
 
           <nav aria-label="Principal" className="hidden items-center gap-0.5 rounded-full bg-ink/[0.045] p-1 md:flex">
-            {NAV.map((item) => {
+            {items.map((item) => {
               const on = activo(pathname, item.href)
               return (
                 <Link
@@ -92,7 +93,7 @@ export function Shell({ nombre, children }: { nombre: string; children: React.Re
               <Search className="size-[18px]" />
             </button>
 
-            <div className="hidden md:block">
+            <div className={cn('hidden', !direccion && 'md:block')}>
               <Menu
                 disparador={({ alternar, abierto }) => (
                   <button type="button" onClick={alternar} aria-expanded={abierto} className="flex h-9 cursor-pointer items-center gap-1.5 rounded-full bg-brand pl-3.5 pr-3 text-[13.5px] font-medium text-white transition-colors hover:bg-brand-hover">
@@ -128,33 +129,41 @@ export function Shell({ nombre, children }: { nombre: string; children: React.Re
       <main className="mx-auto max-w-[1240px] px-4 pb-32 pt-7 md:px-8 md:pb-16 md:pt-10">{children}</main>
 
       <nav aria-label="Principal" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
-        <div className="grid h-16 grid-cols-5 items-center">
-          {NAV.slice(0, 2).map((item) => (
-            <TabMovil key={item.href} {...item} on={activo(pathname, item.href)} />
-          ))}
-          <div className="flex justify-center">
-            <Menu
-              alinear="izquierda"
-              className="bottom-[calc(100%+12px)] left-1/2 top-auto -translate-x-1/2"
-              disparador={({ alternar, abierto }) => (
-                <button
-                  type="button"
-                  onClick={alternar}
-                  aria-label="Nuevo"
-                  aria-expanded={abierto}
-                  className="-mt-5 flex size-14 cursor-pointer items-center justify-center rounded-full bg-brand text-white shadow-float transition-transform active:scale-95"
-                >
-                  <Plus className={cn('size-6 transition-transform duration-200', abierto && 'rotate-45')} />
-                </button>
-              )}
-            >
-              {menuNuevo}
-            </Menu>
+        {direccion ? (
+          <div className="grid h-16 grid-cols-4 items-center">
+            {items.map((item) => (
+              <TabMovil key={item.href} {...item} on={activo(pathname, item.href)} />
+            ))}
           </div>
-          {NAV.slice(2).map((item) => (
-            <TabMovil key={item.href} {...item} on={activo(pathname, item.href)} />
-          ))}
-        </div>
+        ) : (
+          <div className="grid h-16 grid-cols-5 items-center">
+            {NAV.slice(0, 2).map((item) => (
+              <TabMovil key={item.href} {...item} on={activo(pathname, item.href)} />
+            ))}
+            <div className="flex justify-center">
+              <Menu
+                alinear="izquierda"
+                className="bottom-[calc(100%+12px)] left-1/2 top-auto -translate-x-1/2"
+                disparador={({ alternar, abierto }) => (
+                  <button
+                    type="button"
+                    onClick={alternar}
+                    aria-label="Nuevo"
+                    aria-expanded={abierto}
+                    className="-mt-5 flex size-14 cursor-pointer items-center justify-center rounded-full bg-brand text-white shadow-float transition-transform active:scale-95"
+                  >
+                    <Plus className={cn('size-6 transition-transform duration-200', abierto && 'rotate-45')} />
+                  </button>
+                )}
+              >
+                {menuNuevo}
+              </Menu>
+            </div>
+            {NAV.slice(2).map((item) => (
+              <TabMovil key={item.href} {...item} on={activo(pathname, item.href)} />
+            ))}
+          </div>
+        )}
       </nav>
 
       <CambiarPassword abierto={password} onCerrar={() => setPassword(false)} />
