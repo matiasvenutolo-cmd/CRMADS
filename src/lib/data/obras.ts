@@ -1,7 +1,7 @@
 import 'server-only'
 import { and, asc, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
-import { archivos, clientes, compras, etapas, eventos, obras, presupuestos, usuarios, type Etapa } from '@/lib/db/schema'
+import { archivos, clientes, compras, pagos, etapas, eventos, obras, presupuestos, usuarios, type Etapa } from '@/lib/db/schema'
 import { hoyISO } from '@/lib/fechas'
 
 export type FiltroObras = 'en_curso' | 'terminadas' | 'todas'
@@ -65,7 +65,7 @@ export async function getObra(id: string) {
   const o = await db.query.obras.findFirst({ where: eq(obras.id, id) })
   if (!o) return null
   const delPresupuesto = o.presupuestoId ? eq(eventos.presupuestoId, o.presupuestoId) : undefined
-  const [cliente, listaEtapas, historial, adjuntos, presupuesto, listaCompras, proveedores] = await Promise.all([
+  const [cliente, listaEtapas, historial, adjuntos, presupuesto, listaCompras, proveedores, listaPagos] = await Promise.all([
     db.query.clientes.findFirst({ where: eq(clientes.id, o.clienteId) }),
     db.select().from(etapas).where(eq(etapas.obraId, id)).orderBy(asc(etapas.orden)),
     db
@@ -82,6 +82,7 @@ export async function getObra(id: string) {
     o.presupuestoId ? db.query.presupuestos.findFirst({ where: eq(presupuestos.id, o.presupuestoId), columns: { id: true, numero: true, numeroAds: true, monto: true, moneda: true } }) : null,
     db.select().from(compras).where(eq(compras.obraId, id)).orderBy(asc(compras.createdAt)),
     db.selectDistinct({ proveedor: compras.proveedor }).from(compras).orderBy(asc(compras.proveedor)),
+    db.select().from(pagos).where(eq(pagos.obraId, id)).orderBy(asc(pagos.createdAt)),
   ])
-  return { ...o, cliente: cliente!, etapas: listaEtapas, resumen: resumirEtapas(listaEtapas), historial, adjuntos, presupuesto: presupuesto ?? null, compras: listaCompras, proveedores: proveedores.map((p) => p.proveedor) }
+  return { ...o, cliente: cliente!, etapas: listaEtapas, resumen: resumirEtapas(listaEtapas), historial, adjuntos, presupuesto: presupuesto ?? null, compras: listaCompras, proveedores: proveedores.map((p) => p.proveedor), pagos: listaPagos }
 }

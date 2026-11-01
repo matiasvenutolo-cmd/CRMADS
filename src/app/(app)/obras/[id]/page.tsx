@@ -15,6 +15,7 @@ import { Recorrido } from '@/components/obra/recorrido'
 import { EtapaActual } from '@/components/obra/etapa-actual'
 import { PlanosEnviados } from '@/components/obra/planos-enviados'
 import { Compras } from '@/components/obra/compras'
+import { FormaDePago } from '@/components/obra/forma-de-pago'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const o = await getObra((await params).id)
@@ -120,6 +121,12 @@ export default async function ObraPage({ params }: { params: Promise<{ id: strin
         </aside>
 
         <div className="order-1 flex min-w-0 flex-col gap-8 lg:order-none">
+          <section>
+            <h2 className="mb-3 font-serif text-[24px] text-ink">Forma de pago</h2>
+            <Surface className="p-4">
+              <FormaDePago obraId={o.id} pagos={o.pagos} etapas={o.etapas} hoy={hoy} presupuestado={o.presupuesto ? { monto: o.presupuesto.monto, moneda: o.presupuesto.moneda } : null} />
+            </Surface>
+          </section>
           {verPlanos && (
             <section>
               <h2 className="mb-3 font-serif text-[24px] text-ink">Planos de proyecto</h2>

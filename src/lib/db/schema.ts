@@ -118,6 +118,28 @@ export const compras = pgTable(
   (t) => [index('compras_obra_idx').on(t.obraId)]
 )
 
+// Forma de pago de cada obra: lista libre (anticipo, cuotas, canje…), editable siempre.
+// Un pago vence en una fecha o al completarse una etapa (etapaOrden).
+export const pagos = pgTable(
+  'pagos',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    obraId: uuid('obra_id')
+      .notNull()
+      .references(() => obras.id, { onDelete: 'cascade' }),
+    concepto: text('concepto').notNull(),
+    medio: text('medio'),
+    monto: numeric('monto', { precision: 14, scale: 2, mode: 'number' }),
+    moneda: text('moneda').notNull().default('ARS'),
+    fechaPrevista: date('fecha_prevista'),
+    etapaOrden: integer('etapa_orden'),
+    fechaCobro: date('fecha_cobro'),
+    notas: text('notas'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('pagos_obra_idx').on(t.obraId)]
+)
+
 export const eventos = pgTable(
   'eventos',
   {
@@ -159,3 +181,4 @@ export type Etapa = typeof etapas.$inferSelect
 export type Evento = typeof eventos.$inferSelect
 export type Archivo = typeof archivos.$inferSelect
 export type Compra = typeof compras.$inferSelect
+export type Pago = typeof pagos.$inferSelect

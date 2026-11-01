@@ -3,6 +3,7 @@ import { datosTablero } from '@/lib/data/tablero'
 import { getUsuarioActual } from '@/lib/session'
 import { fechaCorta, fechaLarga } from '@/lib/fechas'
 import type { DatosTablero } from '@/lib/data/tablero'
+import { dineroCompacto } from '@/lib/formato'
 import { BuscadorTablero } from '@/components/tablero/buscador'
 import { Columnas, Embudo, FilaBarra, PrecioPorParadas, Tarjeta, miles, pct, usd } from '@/components/tablero/graficos'
 
@@ -247,6 +248,64 @@ export default async function TableroPage() {
 
       <div className="mt-5">
         <Tarjeta
+          kicker="Cobranzas"
+          titulo={d.cobros.total ? `Este mes: ${montosMoneda(d.cobros.meses[0]!)}` : 'Sin formas de pago cargadas'}
+          lectura={
+            d.cobros.total
+              ? [
+                  (d.cobros.vencido.ARS || d.cobros.vencido.USD) && `Vencido sin cobrar: ${montosMoneda(d.cobros.vencido)}`,
+                  (d.cobros.sujeto.ARS || d.cobros.sujeto.USD) && `Sujeto a etapas o sin fecha: ${montosMoneda(d.cobros.sujeto)}`,
+                  (d.cobros.cobradoMes.ARS || d.cobros.cobradoMes.USD) && `Cobrado este mes: ${montosMoneda(d.cobros.cobradoMes)}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ') || 'Lo que hay que cobrar en los próximos meses, según la forma de pago de cada obra.'
+              : 'Cuando se cargue la forma de pago de cada obra, acá se ve cuánto hay que cobrar cada mes.'
+          }
+        >
+          {d.cobros.total > 0 && (
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                {d.cobros.meses.map((m, i) => (
+                  <div key={m.mes} className={`rounded-control px-3 py-3 ${i === 0 ? 'bg-accent-soft' : 'bg-subtle'}`}>
+                    <p className="font-mono text-[11.5px] uppercase text-ink-3">
+                      {MESES[Number(m.mes.slice(5)) - 1]} {m.mes.slice(2, 4)}
+                    </p>
+                    <p className="mt-1.5 text-[13px] font-medium leading-snug text-ink tabular">{m.USD ? usd(m.USD) : ''}</p>
+                    <p className="text-[13px] font-medium leading-snug text-ink tabular">{m.ARS ? pesos(m.ARS) : ''}</p>
+                    {!m.USD && !m.ARS && <p className="text-[13px] text-ink-3">—</p>}
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p className="mb-2 text-[12.5px] text-ink-3">Vencidos sin cobrar</p>
+                {d.cobros.vencidos.length === 0 ? (
+                  <p className="text-[13.5px] text-ink-3">Nada vencido.</p>
+                ) : (
+                  <ul className="divide-y divide-line">
+                    {d.cobros.vencidos.slice(0, 6).map((p) => (
+                      <li key={p.id}>
+                        <a href={`/obras/${p.obraId}`} className="group flex items-baseline gap-3 py-2.5">
+                          <span className="w-14 shrink-0 font-mono text-[12.5px] text-warn">{fechaCorta(p.vence)}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-[14px] font-medium text-ink group-hover:underline">{p.concepto}</span>
+                            <span className="block truncate text-[12.5px] text-ink-3">
+                              {p.obra} · {p.cliente}
+                            </span>
+                          </span>
+                          <span className="shrink-0 text-[13.5px] font-medium text-ink tabular">{p.moneda === 'USD' ? usd(p.monto) : pesos(p.monto)}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+        </Tarjeta>
+      </div>
+
+      <div className="mt-5">
+        <Tarjeta
           kicker="Cronograma de compras"
           titulo={d.compras.total ? (d.compras.porComprar.length === 1 ? '1 compra por hacer' : `${d.compras.porComprar.length} compras por hacer`) : 'Sin compras cargadas'}
           lectura={
@@ -323,4 +382,10 @@ function ListaCompras({ titulo, items, hoy, fecha, vacio }: { titulo: string; it
       )}
     </div>
   )
+}
+
+const pesos = (n: number) => dineroCompacto(Math.round(n), 'ARS')
+
+function montosMoneda(m: { ARS: number; USD: number }) {
+  return [m.USD && usd(m.USD), m.ARS && pesos(m.ARS)].filter(Boolean).join(' + ') || '—'
 }

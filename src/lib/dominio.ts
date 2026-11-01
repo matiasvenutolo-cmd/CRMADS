@@ -31,6 +31,8 @@ export const FECHA_DE_ETAPA: Record<number, string> = {
 export const CATEGORIAS_ARCHIVO = { planos: 'Planos de proyecto', acta: 'Acta de entrega firmada' } as const
 export type CategoriaArchivo = keyof typeof CATEGORIAS_ARCHIVO
 
+export const MEDIOS_PAGO = ['Transferencia', 'Efectivo', 'Cheque', 'Canje', 'Otro'] as const
+
 export const MUNICIPAL = { no: 'No corresponde', si: 'A cargo de ADS' } as const
 
 export const TIPOLOGIAS = [

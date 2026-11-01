@@ -1,7 +1,8 @@
 import 'server-only'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
-import { clientes, compras, etapas, obras, presupuestos } from '@/lib/db/schema'
+import { clientes, compras, etapas, obras, pagos, presupuestos } from '@/lib/db/schema'
+import { estadoPago } from '@/lib/pagos'
 import { ESTADOS_ACTIVOS, ETAPAS_OBRA, type EstadoPresupuesto } from '@/lib/dominio'
 import { diferenciaDias, hoyISO } from '@/lib/fechas'
 
@@ -29,7 +30,7 @@ function trimestre(iso: string) {
 export async function datosTablero() {
   const hoy = hoyISO()
 
-  const [filas, filasObras, filasEtapas, filasCompras] = await Promise.all([
+  const [filas, filasObras, filasEtapas, filasCompras, filasPagos] = await Promise.all([
     db
       .select({
         id: presupuestos.id,
@@ -49,13 +50,18 @@ export async function datosTablero() {
       .from(presupuestos)
       .innerJoin(clientes, eq(clientes.id, presupuestos.clienteId)),
     db.select({ id: obras.id, estado: obras.estado, equipos: obras.cantidadEquipos, fechaInicio: obras.fechaInicio, fechaFinEstimada: obras.fechaFinEstimada, fechaFin: obras.fechaFin }).from(obras),
-    db.select({ obraId: etapas.obraId, orden: etapas.orden, estado: etapas.estado, fechaPrevista: etapas.fechaPrevista }).from(etapas),
+    db.select({ obraId: etapas.obraId, orden: etapas.orden, estado: etapas.estado, fechaPrevista: etapas.fechaPrevista, fechaFin: etapas.fechaFin }).from(etapas),
     db
       .select({ id: compras.id, obraId: obras.id, obra: obras.direccion, cliente: clientes.nombre, proveedor: compras.proveedor, detalle: compras.detalle, compraPrevista: compras.compraPrevista, fechaCompra: compras.fechaCompra, finProduccion: compras.finProduccion })
       .from(compras)
       .innerJoin(obras, eq(obras.id, compras.obraId))
       .innerJoin(clientes, eq(clientes.id, obras.clienteId))
       .where(eq(obras.estado, 'en_curso')),
+    db
+      .select({ id: pagos.id, obraId: obras.id, obra: obras.direccion, cliente: clientes.nombre, concepto: pagos.concepto, monto: pagos.monto, moneda: pagos.moneda, fechaPrevista: pagos.fechaPrevista, etapaOrden: pagos.etapaOrden, fechaCobro: pagos.fechaCobro })
+      .from(pagos)
+      .innerJoin(obras, eq(obras.id, pagos.obraId))
+      .innerJoin(clientes, eq(clientes.id, obras.clienteId)),
   ])
 
   // Todo el análisis comercial es en dólares (es como cotiza ADS). Lo que esté en pesos se informa aparte.
@@ -245,6 +251,25 @@ export async function datosTablero() {
     proveedores: new Set(filasCompras.map((c) => c.proveedor)).size,
   }
 
+  // Cobranzas: cuánto hay que cobrar cada mes, separado en pesos y dólares (no se mezclan).
+  const conEstado = filasPagos.map((p) => ({ ...p, monto: p.monto ?? 0, ...estadoPago(p, filasEtapas.filter((e) => e.obraId === p.obraId), hoy) }))
+  const porMoneda = (l: typeof conEstado) => ({ ARS: suma(l.filter((p) => p.moneda !== 'USD'), (p) => p.monto), USD: suma(l.filter((p) => p.moneda === 'USD'), (p) => p.monto) })
+  const mesesCobro = Array.from({ length: 6 }, (_, i) => {
+    const [y, m] = hoy.split('-').map(Number) as [number, number]
+    const d = new Date(Date.UTC(y, m - 1 + i, 1))
+    const mes = d.toISOString().slice(0, 7)
+    return { mes, ...porMoneda(conEstado.filter((p) => p.estado === 'a_cobrar' && p.vence!.startsWith(mes))) }
+  })
+  const vencidos = conEstado.filter((p) => p.estado === 'vencido').sort((a, b) => a.vence!.localeCompare(b.vence!))
+  const cobros = {
+    total: filasPagos.length,
+    meses: mesesCobro,
+    vencidos,
+    vencido: porMoneda(vencidos),
+    sujeto: porMoneda(conEstado.filter((p) => p.estado === 'sujeto' || p.estado === 'sin_fecha')),
+    cobradoMes: porMoneda(conEstado.filter((p) => p.estado === 'cobrado' && p.fechaCobro!.startsWith(hoy.slice(0, 7)))),
+  }
+
   return {
     hoy,
     hayDatos: filas.length > 0,
@@ -262,6 +287,7 @@ export async function datosTablero() {
     mesesConEnvios,
     obras: obrasInfo,
     compras: comprasInfo,
+    cobros,
   }
 }
 
