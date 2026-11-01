@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db/client'
 import { clientes, etapas, obras } from '@/lib/db/schema'
 import { requerirEdicion } from '@/lib/session'
-import { ETAPAS_OBRA, TIPOS_CONTACTO, type TipoContacto } from '@/lib/dominio'
+import { ETAPA, ETAPAS_OBRA, MUNICIPAL, TIPOS_CONTACTO, type TipoContacto } from '@/lib/dominio'
 import { fechaCorta, hoyISO } from '@/lib/fechas'
 import { enteroOpcional, fechaOpcional, registrarEvento, textoLimpio, type Resultado } from './comun'
 
@@ -22,6 +22,9 @@ export type ObraInput = {
   fechaInicio: string
   fechaFinEstimada?: string
   etapaActual?: number
+  montador?: string
+  municipal?: string
+  fechaMunicipal?: string
   notas?: string
 }
 
@@ -41,6 +44,9 @@ function validar(i: ObraInput) {
       velocidad: textoLimpio(i.velocidad),
       fechaInicio: fechaOpcional(i.fechaInicio) ?? hoyISO(),
       fechaFinEstimada: fechaOpcional(i.fechaFinEstimada),
+      montador: textoLimpio(i.montador),
+      municipal: i.municipal && i.municipal in MUNICIPAL ? i.municipal : null,
+      fechaMunicipal: i.municipal === 'si' ? fechaOpcional(i.fechaMunicipal) : null,
       notas: textoLimpio(i.notas),
     },
   }
@@ -177,6 +183,45 @@ export async function fijarEtapaActual(obraId: string, orden: number): Promise<R
     }
     await tx.update(obras).set({ estado: 'en_curso', fechaFin: null, updatedAt: new Date() }).where(eq(obras.id, obraId))
     await registrarEvento(tx, { obraId, tipo: 'etapa', texto: `Etapa actual cambiada a ${orden}: ${destino.nombre}`, usuarioId: u.id })
+  })
+  revalidatePath('/', 'layout')
+  return { ok: true }
+}
+
+/** Obra civil: cada verificación queda registrada; si está ok, se completa la etapa. */
+export async function verificarObraCivil(obraId: string, fecha: string, ok: boolean, nota: string): Promise<Resultado<{ terminada: boolean }>> {
+  const u = await requerirEdicion()
+  const f = fechaOpcional(fecha) ?? hoyISO()
+  const etapa = await db.query.etapas.findFirst({ where: and(eq(etapas.obraId, obraId), eq(etapas.orden, ETAPA.civil)) })
+  if (!etapa || etapa.estado !== 'en_curso') return { ok: false, error: 'La obra no está en la etapa de obra civil.' }
+  const extra = textoLimpio(nota)
+  await registrarEvento(db, { obraId, tipo: 'verificacion', texto: `Obra civil verificada el ${fechaCorta(f)}: ${ok ? 'está lista' : 'todavía no está lista'}${extra ? `. ${extra}` : ''}`, usuarioId: u.id })
+  if (ok) return completarEtapa(obraId, etapa.id, f, '')
+  await db.update(obras).set({ updatedAt: new Date() }).where(eq(obras.id, obraId))
+  revalidatePath('/', 'layout')
+  return { ok: true, data: { terminada: false } }
+}
+
+export async function fijarPlanosEnviados(obraId: string, fecha: string | null): Promise<Resultado> {
+  const u = await requerirEdicion()
+  const f = fechaOpcional(fecha)
+  if (f && f > hoyISO()) return { ok: false, error: 'La fecha no puede ser futura.' }
+  await db.update(obras).set({ planosEnviados: f, updatedAt: new Date() }).where(eq(obras.id, obraId))
+  await registrarEvento(db, { obraId, tipo: 'sistema', texto: f ? `Planos enviados al cliente el ${fechaCorta(f)}` : 'Sin fecha de envío de planos', usuarioId: u.id })
+  revalidatePath('/', 'layout')
+  return { ok: true }
+}
+
+/** Montaje: fecha de inicio (la de la etapa) y montador a cargo. */
+export async function fijarMontaje(obraId: string, datos: { inicio: string; montador: string }): Promise<Resultado> {
+  const u = await requerirEdicion()
+  const inicio = fechaOpcional(datos.inicio)
+  const montador = textoLimpio(datos.montador)
+  await db.transaction(async (tx) => {
+    await tx.update(etapas).set({ fechaInicio: inicio }).where(and(eq(etapas.obraId, obraId), eq(etapas.orden, ETAPA.montaje)))
+    await tx.update(obras).set({ montador, updatedAt: new Date() }).where(eq(obras.id, obraId))
+    const partes = [inicio && `inicio el ${fechaCorta(inicio)}`, montador && `montador: ${montador}`].filter(Boolean)
+    await registrarEvento(tx, { obraId, tipo: 'sistema', texto: `Montaje: ${partes.join(' · ') || 'sin datos'}`, usuarioId: u.id })
   })
   revalidatePath('/', 'layout')
   return { ok: true }

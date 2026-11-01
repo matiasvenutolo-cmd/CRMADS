@@ -1,16 +1,37 @@
-// Etapas propuestas para validar con ADS en la reunión de arranque. Cada obra
-// guarda su propia copia, así que cambiar esta lista sólo afecta obras nuevas.
+// Etapas validadas con Gerardo (nov 2026). Cada obra guarda su propia copia por orden;
+// varias etapas piden datos propios al pasar a la siguiente (ver ETAPA).
 export const ETAPAS_OBRA = [
-  'Anticipo y alta de obra',
-  'Relevamiento e ingeniería',
-  'Planos y aprobaciones',
-  'Fabricación en planta',
-  'Obra civil lista',
-  'Entrega en obra',
+  'Forma de pago',
+  'Replanteo',
+  'Planos de proyecto',
+  'Compras y fabricación',
+  'Obra civil',
+  'Entrega de materiales en obra',
   'Montaje',
   'Pruebas y puesta en marcha',
-  'Entrega final y documentación',
+  'Entrega final',
 ] as const
+
+/** Orden de las etapas que tienen comportamiento propio. */
+export const ETAPA = { pago: 1, replanteo: 2, planos: 3, compras: 4, civil: 5, entrega: 6, montaje: 7, pruebas: 8, final: 9 } as const
+
+/** Qué fecha se pide al completar cada etapa. */
+export const FECHA_DE_ETAPA: Record<number, string> = {
+  1: 'Fecha',
+  2: 'Fecha del replanteo',
+  3: 'Aprobación de los planos por el cliente',
+  4: 'Materiales listos',
+  5: 'Fecha de la verificación',
+  6: 'Fecha de entrega en obra',
+  7: 'Fin del montaje',
+  8: 'Fecha de puesta en marcha',
+  9: 'Fecha de entrega final',
+}
+
+export const CATEGORIAS_ARCHIVO = { planos: 'Planos de proyecto', acta: 'Acta de entrega firmada' } as const
+export type CategoriaArchivo = keyof typeof CATEGORIAS_ARCHIVO
+
+export const MUNICIPAL = { no: 'No corresponde', si: 'A cargo de ADS' } as const
 
 export const TIPOLOGIAS = [
   'Ascensor electromecánico',

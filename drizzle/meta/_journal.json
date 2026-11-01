@@ -29,6 +29,13 @@
       "when": 1793565485762,
       "tag": "0003_fecha_aprobacion",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793572487485,
+      "tag": "0004_etapas_validadas",
+      "breakpoints": true
     }
   ]
 }

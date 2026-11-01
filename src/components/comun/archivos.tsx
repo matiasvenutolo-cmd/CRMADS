@@ -33,7 +33,7 @@ function seguro(nombre: string) {
   return nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-80)
 }
 
-export function Archivos({ destino, archivos, compacto }: { destino: { presupuestoId?: string; obraId?: string }; archivos: Archivo[]; compacto?: boolean }) {
+export function Archivos({ destino, archivos, compacto, categoria, textoSubir }: { destino: { presupuestoId?: string; obraId?: string }; archivos: Archivo[]; compacto?: boolean; categoria?: string; textoSubir?: string }) {
   const router = useRouter()
   const toast = useToast()
   const input = useRef<HTMLInputElement>(null)
@@ -68,7 +68,7 @@ export function Archivos({ destino, archivos, compacto }: { destino: { presupues
           subidos.push({ nombre: f.name, pathname: r.pathname, contentType: f.type || 'application/octet-stream', tamano: f.size })
         }
       }
-      const r = await registrarArchivos(destino, subidos)
+      const r = await registrarArchivos(destino, subidos, categoria)
       registrados = true
       if (!r.ok) throw new Error(r.error)
       toast(subidos.length > 1 ? `${subidos.length} archivos subidos` : 'Archivo subido')
@@ -77,7 +77,7 @@ export function Archivos({ destino, archivos, compacto }: { destino: { presupues
       toast((e as Error).message.includes('content type') ? 'Ese tipo de archivo no está permitido' : 'No se pudo subir el archivo', 'error')
       // Los que sí llegaron a subirse antes del error quedan registrados igual.
       if (subidos.length && !registrados) {
-        await registrarArchivos(destino, subidos)
+        await registrarArchivos(destino, subidos, categoria)
         router.refresh()
       }
     } finally {
@@ -173,10 +173,10 @@ export function Archivos({ destino, archivos, compacto }: { destino: { presupues
             className="flex h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-control border border-dashed border-line-strong text-[13.5px] font-medium text-ink-2 transition-colors hover:border-ink/30 hover:bg-subtle hover:text-ink"
           >
             <Upload className="size-4" />
-            <span className="md:hidden">Subir archivo</span>
-            <span className="hidden md:inline">Subir o arrastrar archivos</span>
+            <span className="md:hidden">{textoSubir ?? 'Subir archivo'}</span>
+            <span className="hidden md:inline">{textoSubir ? `${textoSubir} o arrastrarlos` : 'Subir o arrastrar archivos'}</span>
           </button>
-          <button type="button" onClick={() => camara.current?.click()} aria-label="Sacar foto" className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-control border border-dashed border-line-strong text-ink-2 hover:bg-subtle md:hidden">
+          <button type="button" hidden={!!categoria} onClick={() => camara.current?.click()} aria-label="Sacar foto" className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-control border border-dashed border-line-strong text-ink-2 hover:bg-subtle md:hidden">
             <Camera className="size-[18px]" />
           </button>
         </div>

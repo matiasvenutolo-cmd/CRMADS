@@ -67,8 +67,14 @@ export const obras = pgTable(
     velocidad: text('velocidad'),
     estado: text('estado').notNull().default('en_curso'),
     fechaInicio: date('fecha_inicio').notNull(),
+    // Plazo de entrega pedido por el cliente (se compara con fechaFin, la entrega real).
     fechaFinEstimada: date('fecha_fin_estimada'),
     fechaFin: date('fecha_fin'),
+    planosEnviados: date('planos_enviados'),
+    montador: text('montador'),
+    // Aprobación municipal: null = sin definir, 'no' = no corresponde, 'si' = a cargo de ADS.
+    municipal: text('municipal'),
+    fechaMunicipal: date('fecha_municipal'),
     notas: text('notas'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -114,6 +120,8 @@ export const archivos = pgTable(
     presupuestoId: uuid('presupuesto_id').references(() => presupuestos.id, { onDelete: 'cascade' }),
     obraId: uuid('obra_id').references(() => obras.id, { onDelete: 'cascade' }),
     nombre: text('nombre').notNull(),
+    // 'planos' | 'acta' | null (fotos y archivos sueltos)
+    categoria: text('categoria'),
     pathname: text('pathname').notNull(),
     thumbPathname: text('thumb_pathname'),
     contentType: text('content_type').notNull(),

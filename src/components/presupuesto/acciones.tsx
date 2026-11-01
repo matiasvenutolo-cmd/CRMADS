@@ -185,7 +185,7 @@ export function AccionesPresupuesto({ presupuesto, hoy }: Props) {
           <Field label="Inicio de obra" htmlFor="g-inicio">
             <Input id="g-inicio" type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} />
           </Field>
-          <Field label="Puesta en marcha estimada" htmlFor="g-fin" hint="Opcional">
+          <Field label="Plazo de entrega pedido" htmlFor="g-fin" hint="Opcional. El que pidió el cliente.">
             <Input id="g-fin" type="date" value={fin} min={inicio} onChange={(e) => setFin(e.target.value)} />
           </Field>
         </div>

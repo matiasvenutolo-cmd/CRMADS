@@ -1,4 +1,4 @@
-import { Phone, MessageCircle, Mail, MapPin, StickyNote, ArrowRightLeft, Layers, Paperclip, Dot } from 'lucide-react'
+import { Phone, MessageCircle, Mail, MapPin, StickyNote, ArrowRightLeft, Layers, Paperclip, Dot, ClipboardCheck } from 'lucide-react'
 import { momento } from '@/lib/fechas'
 import { TIPOS_CONTACTO } from '@/lib/dominio'
 import { cn } from '@/lib/utils'
@@ -12,6 +12,7 @@ const ICONOS: Record<string, React.ComponentType<{ className?: string }>> = {
   estado: ArrowRightLeft,
   etapa: Layers,
   archivo: Paperclip,
+  verificacion: ClipboardCheck,
   sistema: Dot,
 }
 
@@ -24,7 +25,7 @@ export function Bitacora({ items }: { items: ItemBitacora[] }) {
       {items.map((it, i) => {
         const Icono = ICONOS[it.tipo] ?? Dot
         const humano = it.tipo in TIPOS_CONTACTO
-        const destacado = humano || it.tipo === 'etapa' || it.tipo === 'estado'
+        const destacado = humano || it.tipo === 'etapa' || it.tipo === 'estado' || it.tipo === 'verificacion'
         return (
           <li key={it.id} className="relative flex gap-3.5 pb-5 last:pb-0">
             {i < items.length - 1 && <span className="absolute bottom-0 left-[15px] top-8 w-px bg-line" aria-hidden />}

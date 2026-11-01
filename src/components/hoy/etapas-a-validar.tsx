@@ -1,14 +1,12 @@
 import { ETAPAS_OBRA } from '@/lib/dominio'
-import { Aviso } from '@/components/ui/estado'
 
 export function EtapasAValidar() {
   return (
     <section className="rounded-surface border border-dashed border-warn-dot/60 bg-surface p-5 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-serif text-[24px] leading-tight text-ink">Etapas de cada obra</h2>
-        <Aviso>A validar con ADS</Aviso>
       </div>
-      <p className="mt-1.5 max-w-2xl text-[13.5px] text-ink-3">Es la propuesta inicial de recorrido para todas las obras. Se ajusta en la reunión de arranque: nombres, orden o etapas que falten o sobren.</p>
+      <p className="mt-1.5 max-w-2xl text-[13.5px] text-ink-3">El recorrido de cada obra, desde la forma de pago hasta la entrega final.</p>
       <ol className="mt-5 grid gap-x-6 gap-y-2.5 sm:grid-cols-2 lg:grid-cols-3">
         {ETAPAS_OBRA.map((e, i) => (
           <li key={e} className="flex items-center gap-3">

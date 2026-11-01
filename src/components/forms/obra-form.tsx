@@ -9,7 +9,7 @@ import { useToast } from '@/components/ui/toast'
 import { ClienteSelector, type ValorCliente } from './cliente-selector'
 import { CamposTecnicos } from './tecnicos'
 import { crearObra, editarObra } from '@/lib/actions/obras'
-import { ETAPAS_OBRA, LOCALIDADES_SUGERIDAS, TIPOLOGIAS } from '@/lib/dominio'
+import { ETAPAS_OBRA, LOCALIDADES_SUGERIDAS, MUNICIPAL, TIPOLOGIAS } from '@/lib/dominio'
 import type { Obra } from '@/lib/db/schema'
 
 export function ObraForm({ abierto, onCerrar, opciones, hoy, existente }: { abierto: boolean; onCerrar: () => void; opciones: { id: string; nombre: string }[]; hoy: string; existente?: Obra }) {
@@ -28,11 +28,14 @@ export function ObraForm({ abierto, onCerrar, opciones, hoy, existente }: { abie
   const [etapa, setEtapa] = useState('1')
   const [tecnicos, setTecnicos] = useState({ cargaKg: existente?.cargaKg?.toString() ?? '', paradas: existente?.paradas?.toString() ?? '', velocidad: existente?.velocidad ?? '' })
   const [notas, setNotas] = useState(existente?.notas ?? '')
+  const [montador, setMontador] = useState(existente?.montador ?? '')
+  const [municipal, setMunicipal] = useState(existente?.municipal ?? '')
+  const [fechaMunicipal, setFechaMunicipal] = useState(existente?.fechaMunicipal ?? '')
 
   function guardar() {
     setError(undefined)
     if (!existente && !cliente) return setError('Elegí o creá el cliente.')
-    const datos = { clienteId: cliente?.id, clienteNuevo: cliente?.nuevo, direccion, localidad, tipologia, cantidadEquipos: cantidad, fechaInicio: inicio, fechaFinEstimada: fin, etapaActual: Number(etapa), notas, ...tecnicos }
+    const datos = { clienteId: cliente?.id, clienteNuevo: cliente?.nuevo, direccion, localidad, tipologia, cantidadEquipos: cantidad, fechaInicio: inicio, fechaFinEstimada: fin, etapaActual: Number(etapa), montador, municipal, fechaMunicipal, notas, ...tecnicos }
     start(async () => {
       const r = existente ? await editarObra(existente.id, datos) : await crearObra(datos)
       if (!r.ok) return setError(r.error)
@@ -117,10 +120,30 @@ export function ObraForm({ abierto, onCerrar, opciones, hoy, existente }: { abie
           <Field label="Inicio de obra" htmlFor="o-inicio">
             <Input id="o-inicio" type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} />
           </Field>
-          <Field label="Puesta en marcha estimada" htmlFor="o-fin">
+          <Field label="Plazo de entrega pedido por el cliente" htmlFor="o-fin">
             <Input id="o-fin" type="date" value={fin} onChange={(e) => setFin(e.target.value)} />
           </Field>
         </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Aprobación municipal" htmlFor="o-muni">
+            <Select id="o-muni" value={municipal} onChange={(e) => setMunicipal(e.target.value)}>
+              <option value="">Sin definir</option>
+              {Object.entries(MUNICIPAL).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          {municipal === 'si' && (
+            <Field label="Fecha de aprobación municipal" htmlFor="o-muni-f" hint="Vacía si está en trámite.">
+              <Input id="o-muni-f" type="date" value={fechaMunicipal} max={hoy} onChange={(e) => setFechaMunicipal(e.target.value)} />
+            </Field>
+          )}
+        </div>
+        <Field label="Montador" htmlFor="o-montador" hint="Opcional. Quién está a cargo del montaje.">
+          <Input id="o-montador" value={montador} onChange={(e) => setMontador(e.target.value)} />
+        </Field>
         <CamposTecnicos valor={tecnicos} onChange={setTecnicos} />
         <Field label="Notas" htmlFor="o-notas">
           <Textarea id="o-notas" value={notas} onChange={(e) => setNotas(e.target.value)} rows={3} />
