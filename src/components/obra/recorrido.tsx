@@ -7,6 +7,7 @@ import { fijarFechaPrevista } from '@/lib/actions/obras'
 import { fechaCorta } from '@/lib/fechas'
 import type { Etapa } from '@/lib/db/schema'
 import { cn } from '@/lib/utils'
+import { usePuedeEditar } from '@/components/shell/permisos'
 
 /** El hueco: una parada por etapa. Las fechas previstas se editan tocando la parada. */
 export function Recorrido({ obraId, etapas, hoy }: { obraId: string; etapas: Etapa[]; hoy: string }) {
@@ -26,6 +27,7 @@ function Parada({ obraId, etapa: e, hoy }: { obraId: string; etapa: Etapa; hoy: 
   const actual = e.estado === 'en_curso'
   const hecha = e.estado === 'completa'
   const atrasada = actual && !!e.fechaPrevista && e.fechaPrevista < hoy
+  const puedeEditar = usePuedeEditar()
 
   return (
     <li className={cn('relative flex items-start gap-3.5 py-2.5', pendiente && 'opacity-60')}>
@@ -44,6 +46,13 @@ function Parada({ obraId, etapa: e, hoy }: { obraId: string; etapa: Etapa; hoy: 
         <div className="mt-0.5 text-[12.5px]">
           {hecha ? (
             <span className="text-ink-3">Completa {e.fechaFin ? `el ${fechaCorta(e.fechaFin)}` : ''}</span>
+          ) : !puedeEditar ? (
+            e.fechaPrevista && (
+              <span className={atrasada ? 'font-medium text-warn' : 'text-ink-3'}>
+                {atrasada ? 'Atrasada · prevista ' : 'Prevista '}
+                {fechaCorta(e.fechaPrevista)}
+              </span>
+            )
           ) : (
             <label className="group relative inline-flex cursor-pointer items-center gap-1">
               {e.fechaPrevista ? (

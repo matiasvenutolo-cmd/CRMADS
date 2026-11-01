@@ -3,9 +3,11 @@
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useNuevo } from '@/components/shell/nuevo'
+import { usePuedeEditar } from '@/components/shell/permisos'
 
 export function BotonNuevo({ tipo, children, variante = 'primary' }: { tipo: 'presupuesto' | 'obra' | 'cliente'; children: React.ReactNode; variante?: 'primary' | 'secondary' }) {
   const { abrir } = useNuevo()
+  if (!usePuedeEditar()) return null
   return (
     <Button variante={variante} onClick={() => abrir(tipo)}>
       <Plus className="size-4" />

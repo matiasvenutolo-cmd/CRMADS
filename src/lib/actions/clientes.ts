@@ -4,7 +4,7 @@ import { asc, eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db/client'
 import { clientes } from '@/lib/db/schema'
-import { getUsuarioActual } from '@/lib/session'
+import { getUsuarioActual, requerirEdicion } from '@/lib/session'
 import { textoLimpio, type Resultado } from './comun'
 
 export type ClienteInput = { nombre: string; contacto?: string; telefono?: string; email?: string; cuit?: string; notas?: string }
@@ -21,7 +21,7 @@ function limpiar(i: ClienteInput) {
 }
 
 export async function crearCliente(input: ClienteInput): Promise<Resultado<{ id: string }>> {
-  await getUsuarioActual()
+  await requerirEdicion()
   const datos = limpiar(input)
   if (!datos.nombre) return { ok: false, error: 'El nombre del cliente es obligatorio.' }
   const [c] = await db.insert(clientes).values({ ...datos, nombre: datos.nombre }).returning({ id: clientes.id })
@@ -30,7 +30,7 @@ export async function crearCliente(input: ClienteInput): Promise<Resultado<{ id:
 }
 
 export async function editarCliente(id: string, input: ClienteInput): Promise<Resultado> {
-  await getUsuarioActual()
+  await requerirEdicion()
   const datos = limpiar(input)
   if (!datos.nombre) return { ok: false, error: 'El nombre del cliente es obligatorio.' }
   await db.update(clientes).set({ ...datos, nombre: datos.nombre, updatedAt: new Date() }).where(eq(clientes.id, id))

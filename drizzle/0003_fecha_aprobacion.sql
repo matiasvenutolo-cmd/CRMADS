@@ -1,0 +1,1 @@
+ALTER TABLE "presupuestos" ADD COLUMN "fecha_aprobacion" date;

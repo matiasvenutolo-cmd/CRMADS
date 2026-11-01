@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db/client'
 import { clientes, etapas, obras, presupuestos } from '@/lib/db/schema'
-import { getUsuarioActual } from '@/lib/session'
+import { requerirEdicion } from '@/lib/session'
 import { ESTADOS_PRESUPUESTO, ETAPAS_OBRA, TIPOS_CONTACTO, codigoObra, normalizarNumeroAds, type EstadoPresupuesto, type TipoContacto } from '@/lib/dominio'
 import { dinero } from '@/lib/formato'
 import { fechaCorta, hoyISO } from '@/lib/fechas'
@@ -58,7 +58,7 @@ function validar(i: PresupuestoInput) {
 }
 
 export async function crearPresupuesto(input: PresupuestoInput): Promise<Resultado<{ id: string }>> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const v = validar(input)
   if ('error' in v) return { ok: false, error: v.error! }
   const nombreNuevo = textoLimpio(input.clienteNuevo)
@@ -84,7 +84,7 @@ export async function crearPresupuesto(input: PresupuestoInput): Promise<Resulta
 }
 
 export async function editarPresupuesto(id: string, input: PresupuestoInput): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const v = validar(input)
   if ('error' in v) return { ok: false, error: v.error! }
   const previo = await db.query.presupuestos.findFirst({ where: eq(presupuestos.id, id) })
@@ -113,7 +113,7 @@ export async function editarPresupuesto(id: string, input: PresupuestoInput): Pr
 }
 
 export async function cambiarEstado(id: string, estado: EstadoPresupuesto): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   if (!['borrador', 'enviado', 'negociacion'].includes(estado)) return { ok: false, error: 'Estado no válido.' }
   const p = await db.query.presupuestos.findFirst({ where: eq(presupuestos.id, id) })
   if (!p) return { ok: false, error: 'No existe el presupuesto.' }
@@ -136,7 +136,7 @@ export async function registrarContacto(
   texto: string,
   proximoSeguimiento: string | null
 ): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const limpio = textoLimpio(texto)
   if (!(tipo in TIPOS_CONTACTO)) return { ok: false, error: 'Tipo de contacto no válido.' }
   if (!limpio && tipo === 'nota') return { ok: false, error: 'Escribí la nota.' }
@@ -157,7 +157,7 @@ export async function registrarContacto(
 }
 
 export async function reprogramarSeguimiento(presupuestoId: string, fecha: string | null): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const f = fechaOpcional(fecha)
   await db.transaction(async (tx) => {
     await tx.update(presupuestos).set({ proximoSeguimiento: f, updatedAt: new Date() }).where(eq(presupuestos.id, presupuestoId))
@@ -168,7 +168,7 @@ export async function reprogramarSeguimiento(presupuestoId: string, fecha: strin
 }
 
 export async function marcarPerdido(id: string, motivo: string, nota: string): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const m = textoLimpio(motivo)
   if (!m) return { ok: false, error: 'Elegí el motivo.' }
   const extra = textoLimpio(nota)
@@ -180,17 +180,19 @@ export async function marcarPerdido(id: string, motivo: string, nota: string): P
   return { ok: true }
 }
 
-export async function ganarYCrearObra(id: string, opciones: { fechaInicio: string; fechaFinEstimada?: string; etapaActual?: number }): Promise<Resultado<{ obraId: string }>> {
-  const u = await getUsuarioActual()
+export async function ganarYCrearObra(id: string, opciones: { fechaAprobacion?: string; fechaInicio: string; fechaFinEstimada?: string; etapaActual?: number }): Promise<Resultado<{ obraId: string }>> {
+  const u = await requerirEdicion()
   const p = await db.query.presupuestos.findFirst({ where: eq(presupuestos.id, id) })
   if (!p) return { ok: false, error: 'No existe el presupuesto.' }
   const existente = await db.query.obras.findFirst({ where: eq(obras.presupuestoId, id), columns: { id: true } })
   if (existente) return { ok: true, data: { obraId: existente.id } }
   const inicio = fechaOpcional(opciones.fechaInicio) ?? hoyISO()
+  const aprobacion = fechaOpcional(opciones.fechaAprobacion) ?? hoyISO()
+  if (aprobacion > hoyISO()) return { ok: false, error: 'La fecha de aprobación no puede ser futura.' }
   const actual = Math.min(Math.max(Number(opciones.etapaActual) || 1, 1), ETAPAS_OBRA.length)
 
   const obraId = await db.transaction(async (tx) => {
-    await tx.update(presupuestos).set({ estado: 'ganado', proximoSeguimiento: null, motivoPerdida: null, updatedAt: new Date() }).where(eq(presupuestos.id, id))
+    await tx.update(presupuestos).set({ estado: 'ganado', fechaAprobacion: aprobacion, proximoSeguimiento: null, motivoPerdida: null, updatedAt: new Date() }).where(eq(presupuestos.id, id))
     const [o] = await tx
       .insert(obras)
       .values({
@@ -231,7 +233,7 @@ export async function ganarYCrearObra(id: string, opciones: { fechaInicio: strin
 }
 
 export async function reabrirPresupuesto(id: string): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   await db.transaction(async (tx) => {
     await tx.update(presupuestos).set({ estado: 'negociacion', motivoPerdida: null, updatedAt: new Date() }).where(eq(presupuestos.id, id))
     await registrarEvento(tx, { presupuestoId: id, tipo: 'estado', texto: 'Reabierto, pasó a en negociación', usuarioId: u.id })
@@ -240,8 +242,21 @@ export async function reabrirPresupuesto(id: string): Promise<Resultado> {
   return { ok: true }
 }
 
+export async function cambiarFechaAprobacion(id: string, fecha: string): Promise<Resultado> {
+  const u = await requerirEdicion()
+  const f = fechaOpcional(fecha)
+  if (!f) return { ok: false, error: 'Fecha no válida.' }
+  if (f > hoyISO()) return { ok: false, error: 'La fecha de aprobación no puede ser futura.' }
+  await db.transaction(async (tx) => {
+    await tx.update(presupuestos).set({ fechaAprobacion: f, updatedAt: new Date() }).where(eq(presupuestos.id, id))
+    await registrarEvento(tx, { presupuestoId: id, tipo: 'sistema', texto: `Fecha de aprobación: ${fechaCorta(f)}`, usuarioId: u.id })
+  })
+  revalidatePath('/', 'layout')
+  return { ok: true }
+}
+
 export async function cambiarFechaEnvio(id: string, fecha: string): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const f = fechaOpcional(fecha)
   if (!f) return { ok: false, error: 'Fecha no válida.' }
   if (f > hoyISO()) return { ok: false, error: 'La fecha de envío no puede ser futura.' }

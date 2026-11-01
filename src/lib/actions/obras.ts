@@ -4,7 +4,7 @@ import { and, asc, eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db/client'
 import { clientes, etapas, obras } from '@/lib/db/schema'
-import { getUsuarioActual } from '@/lib/session'
+import { requerirEdicion } from '@/lib/session'
 import { ETAPAS_OBRA, TIPOS_CONTACTO, type TipoContacto } from '@/lib/dominio'
 import { fechaCorta, hoyISO } from '@/lib/fechas'
 import { enteroOpcional, fechaOpcional, registrarEvento, textoLimpio, type Resultado } from './comun'
@@ -48,7 +48,7 @@ function validar(i: ObraInput) {
 
 /** Alta directa: para cargar obras que ya estaban en curso antes del sistema. */
 export async function crearObra(input: ObraInput): Promise<Resultado<{ id: string }>> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const v = validar(input)
   if ('error' in v) return { ok: false, error: v.error! }
   const nombreNuevo = textoLimpio(input.clienteNuevo)
@@ -78,7 +78,7 @@ export async function crearObra(input: ObraInput): Promise<Resultado<{ id: strin
 }
 
 export async function editarObra(id: string, input: ObraInput): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const v = validar(input)
   if ('error' in v) return { ok: false, error: v.error! }
   await db.transaction(async (tx) => {
@@ -90,7 +90,7 @@ export async function editarObra(id: string, input: ObraInput): Promise<Resultad
 }
 
 export async function completarEtapa(obraId: string, etapaId: string, fecha: string, nota: string): Promise<Resultado<{ terminada: boolean }>> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const f = fechaOpcional(fecha) ?? hoyISO()
   const lista = await db.select().from(etapas).where(eq(etapas.obraId, obraId)).orderBy(asc(etapas.orden))
   const etapa = lista.find((e) => e.id === etapaId)
@@ -119,7 +119,7 @@ export async function completarEtapa(obraId: string, etapaId: string, fecha: str
 
 /** Deshace el último avance (por si se completó una etapa por error). */
 export async function volverEtapa(obraId: string): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const lista = await db.select().from(etapas).where(eq(etapas.obraId, obraId)).orderBy(asc(etapas.orden))
   const enCurso = lista.find((e) => e.estado === 'en_curso')
   const ultimaCompleta = [...lista].reverse().find((e) => e.estado === 'completa')
@@ -136,7 +136,7 @@ export async function volverEtapa(obraId: string): Promise<Resultado> {
 }
 
 export async function fijarFechaPrevista(obraId: string, etapaId: string, fecha: string | null): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const f = fechaOpcional(fecha)
   const [e] = await db
     .update(etapas)
@@ -150,7 +150,7 @@ export async function fijarFechaPrevista(obraId: string, etapaId: string, fecha:
 }
 
 export async function registrarNotaObra(obraId: string, tipo: TipoContacto, texto: string): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const limpio = textoLimpio(texto)
   if (!(tipo in TIPOS_CONTACTO)) return { ok: false, error: 'Tipo no válido.' }
   if (!limpio) return { ok: false, error: 'Escribí la nota.' }
@@ -162,7 +162,7 @@ export async function registrarNotaObra(obraId: string, tipo: TipoContacto, text
 
 /** Ubica la obra en una etapa (para obras cargadas en la etapa equivocada). */
 export async function fijarEtapaActual(obraId: string, orden: number): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const lista = await db.select().from(etapas).where(eq(etapas.obraId, obraId)).orderBy(asc(etapas.orden))
   const destino = lista.find((e) => e.orden === orden)
   if (!destino) return { ok: false, error: 'Etapa no válida.' }

@@ -6,6 +6,7 @@ import { upload } from '@vercel/blob/client'
 import { FileText, FileSpreadsheet, File as FileIcon, Upload, Trash2, Camera } from 'lucide-react'
 import { registrarArchivos, eliminarArchivo, type ArchivoSubido } from '@/lib/actions/archivos'
 import { useToast } from '@/components/ui/toast'
+import { usePuedeEditar } from '@/components/shell/permisos'
 import { tamanoArchivo } from '@/lib/formato'
 import { fechaCorta } from '@/lib/fechas'
 import type { Archivo } from '@/lib/db/schema'
@@ -40,6 +41,7 @@ export function Archivos({ destino, archivos, compacto }: { destino: { presupues
   const [subiendo, setSubiendo] = useState<string | null>(null)
   const [arrastrando, setArrastrando] = useState(false)
   const [, start] = useTransition()
+  const puedeEditar = usePuedeEditar()
 
   const carpeta = destino.obraId ? `obras/${destino.obraId}` : `presupuestos/${destino.presupuestoId}`
   const fotos = archivos.filter((a) => a.contentType.startsWith('image/'))
@@ -99,13 +101,13 @@ export function Archivos({ destino, archivos, compacto }: { destino: { presupues
     <div
       onDragOver={(e) => {
         e.preventDefault()
-        setArrastrando(true)
+        if (puedeEditar) setArrastrando(true)
       }}
       onDragLeave={() => setArrastrando(false)}
       onDrop={(e) => {
         e.preventDefault()
         setArrastrando(false)
-        subir(e.dataTransfer.files)
+        if (puedeEditar) subir(e.dataTransfer.files)
       }}
       className={cn('rounded-control transition-colors', arrastrando && 'bg-accent-soft ring-2 ring-accent/40')}
     >
@@ -122,6 +124,7 @@ export function Archivos({ destino, archivos, compacto }: { destino: { presupues
               </a>
               <button
                 type="button"
+                hidden={!puedeEditar}
                 onClick={() => borrar(f)}
                 aria-label={`Eliminar ${f.nombre}`}
                 className="absolute right-1.5 top-1.5 flex size-7 cursor-pointer items-center justify-center rounded-full bg-ink/60 text-white opacity-0 backdrop-blur transition-opacity focus:opacity-100 group-hover:opacity-100 max-md:opacity-100"
@@ -146,7 +149,7 @@ export function Archivos({ destino, archivos, compacto }: { destino: { presupues
                     {tamanoArchivo(d.tamano)} · {fechaCorta(d.createdAt.toISOString().slice(0, 10))}
                   </span>
                 </a>
-                <button type="button" onClick={() => borrar(d)} aria-label={`Eliminar ${d.nombre}`} className="flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-3 opacity-0 transition-opacity hover:bg-bad-soft hover:text-bad focus:opacity-100 group-hover:opacity-100 max-md:opacity-100">
+                <button type="button" hidden={!puedeEditar} onClick={() => borrar(d)} aria-label={`Eliminar ${d.nombre}`} className="flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-3 opacity-0 transition-opacity hover:bg-bad-soft hover:text-bad focus:opacity-100 group-hover:opacity-100 max-md:opacity-100">
                   <Trash2 className="size-4" />
                 </button>
               </li>
@@ -155,7 +158,9 @@ export function Archivos({ destino, archivos, compacto }: { destino: { presupues
         </ul>
       )}
 
-      {subiendo ? (
+      {!puedeEditar ? (
+        !archivos.length && <p className="text-[13.5px] text-ink-3">Sin archivos.</p>
+      ) : subiendo ? (
         <div className="flex h-11 items-center justify-center gap-2 rounded-control border border-dashed border-accent/40 bg-accent-soft text-[13.5px] font-medium text-accent">
           <span className="size-3.5 animate-spin rounded-full border-2 border-current border-r-transparent" />
           {subiendo}

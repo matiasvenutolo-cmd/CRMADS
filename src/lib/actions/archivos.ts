@@ -6,13 +6,13 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db/client'
 import { archivos, presupuestos } from '@/lib/db/schema'
 import { numeroAdsDeArchivo } from '@/lib/dominio'
-import { getUsuarioActual } from '@/lib/session'
+import { requerirEdicion } from '@/lib/session'
 import { registrarEvento, type Resultado } from './comun'
 
 export type ArchivoSubido = { nombre: string; pathname: string; thumbPathname?: string | null; contentType: string; tamano: number }
 
 export async function registrarArchivos(destino: { presupuestoId?: string; obraId?: string }, lista: ArchivoSubido[]): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   if (!destino.presupuestoId && !destino.obraId) return { ok: false, error: 'Falta el destino del archivo.' }
   if (!lista.length) return { ok: true }
   await db.transaction(async (tx) => {
@@ -46,7 +46,7 @@ export async function registrarArchivos(destino: { presupuestoId?: string; obraI
 }
 
 export async function eliminarArchivo(id: string): Promise<Resultado> {
-  const u = await getUsuarioActual()
+  const u = await requerirEdicion()
   const a = await db.query.archivos.findFirst({ where: eq(archivos.id, id) })
   if (!a) return { ok: false, error: 'No existe el archivo.' }
   await del([a.pathname, ...(a.thumbPathname ? [a.thumbPathname] : [])])

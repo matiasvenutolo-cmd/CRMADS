@@ -14,7 +14,7 @@ import { Bitacora } from '@/components/comun/bitacora'
 import { Composer } from '@/components/comun/composer'
 import { Archivos } from '@/components/comun/archivos'
 import { AccionesPresupuesto, SelectorEstado } from '@/components/presupuesto/acciones'
-import { FechaEnvioEditable, SeguimientoEditable } from '@/components/presupuesto/seguimiento-editable'
+import { FechaAprobacionEditable, FechaEnvioEditable, SeguimientoEditable } from '@/components/presupuesto/seguimiento-editable'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const p = await getPresupuesto((await params).id)
@@ -78,6 +78,7 @@ export default async function PresupuestoPage({ params }: { params: Promise<{ id
         <Dato etiqueta="Estado">
           <div className="pt-0.5">{activo ? <SelectorEstado presupuesto={conCliente} hoy={hoy} /> : <EstadoPresupuestoLabel estado={p.estado} className="text-[15px]" />}</div>
           {p.fechaEnvio ? <FechaEnvioEditable presupuestoId={p.id} fecha={p.fechaEnvio} hoy={hoy} /> : <span className="mt-2 block text-[12.5px] text-ink-3">Sin enviar</span>}
+          {p.estado === 'ganado' && <FechaAprobacionEditable presupuestoId={p.id} fecha={p.fechaAprobacion} hoy={hoy} />}
         </Dato>
         <Dato etiqueta="Próximo seguimiento">{activo ? <SeguimientoEditable presupuestoId={p.id} fecha={p.proximoSeguimiento} hoy={hoy} /> : <span className="font-serif text-[26px] leading-none text-ink-3">—</span>}</Dato>
         <Dato etiqueta="Equipo">

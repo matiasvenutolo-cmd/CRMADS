@@ -8,6 +8,8 @@ import { Menu, MenuItem } from '@/components/ui/menu'
 import { Panel } from '@/components/ui/panel'
 import { Field, Input, Select, Textarea } from '@/components/ui/field'
 import { useToast } from '@/components/ui/toast'
+import { usePuedeEditar } from '@/components/shell/permisos'
+import { cn } from '@/lib/utils'
 import { ObraForm } from '@/components/forms/obra-form'
 import { completarEtapa, fijarEtapaActual, volverEtapa } from '@/lib/actions/obras'
 import { fechaCorta, relativo } from '@/lib/fechas'
@@ -27,6 +29,7 @@ export function EtapaActual({ obra, etapas, hoy }: { obra: Obra; etapas: Etapa[]
   const siguiente = actual ? etapas.find((e) => e.orden === actual.orden + 1) : undefined
   const terminada = obra.estado === 'terminada'
   const atrasada = !!actual?.fechaPrevista && actual.fechaPrevista < hoy
+  const puedeEditar = usePuedeEditar()
 
   function completar() {
     if (!actual) return
@@ -75,7 +78,7 @@ export function EtapaActual({ obra, etapas, hoy }: { obra: Obra; etapas: Etapa[]
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className={cn('flex items-center gap-2', !puedeEditar && 'hidden')}>
           {actual && (
             <button
               type="button"

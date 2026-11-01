@@ -4,10 +4,12 @@ import { Shell } from '@/components/shell/shell'
 import { NuevoProvider } from '@/components/shell/nuevo'
 import { BusquedaProvider } from '@/components/shell/busqueda'
 import { ToastProvider } from '@/components/ui/toast'
+import { PermisosProvider } from '@/components/shell/permisos'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const usuario = await getUsuarioActual()
   return (
+    <PermisosProvider puedeEditar={usuario.rol !== 'direccion'}>
     <ToastProvider>
       <BusquedaProvider>
         <NuevoProvider hoy={hoyISO()}>
@@ -15,5 +17,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </NuevoProvider>
       </BusquedaProvider>
     </ToastProvider>
+    </PermisosProvider>
   )
 }

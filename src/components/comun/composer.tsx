@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Phone, MessageCircle, Mail, MapPin, StickyNote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/toast'
+import { usePuedeEditar } from '@/components/shell/permisos'
 import { ElegirFecha } from '@/components/forms/segmentado'
 import { registrarContacto } from '@/lib/actions/presupuestos'
 import { registrarNotaObra } from '@/lib/actions/obras'
@@ -55,6 +56,7 @@ export function Composer({
   })()
   const [seguimiento, setSeguimiento] = useState<string | null>(seguimientoActual && seguimientoActual > hoy ? seguimientoActual : sugerida)
   const [error, setError] = useState<string>()
+  const puedeEditar = usePuedeEditar()
 
   function guardar() {
     setError(undefined)
@@ -68,6 +70,7 @@ export function Composer({
     })
   }
 
+  if (!puedeEditar) return null
   const tipos = esPresupuesto ? TIPOS : [TIPOS[4], ...TIPOS.slice(0, 4)]
 
   return (

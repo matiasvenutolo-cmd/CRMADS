@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { datosTablero } from '@/lib/data/tablero'
 import { getUsuarioActual } from '@/lib/session'
 import { fechaLarga } from '@/lib/fechas'
+import { BuscadorTablero } from '@/components/tablero/buscador'
 import { Columnas, Embudo, FilaBarra, PrecioPorParadas, Tarjeta, miles, pct, usd } from '@/components/tablero/graficos'
 
 export const metadata: Metadata = { title: 'Tablero' }
@@ -63,6 +64,8 @@ export default async function TableroPage() {
           .{obras.enCurso > 0 && ` ${obras.enCurso} obras en curso con ${obras.equipos} equipos.`}
         </p>
       </header>
+
+      <BuscadorTablero />
 
       {/* Lo esencial, de un vistazo */}
       <section className="banda overflow-hidden rounded-surface text-white shadow-surface">

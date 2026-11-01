@@ -41,6 +41,7 @@ export const presupuestos = pgTable(
     moneda: text('moneda').notNull().default('ARS'),
     estado: text('estado').notNull().default('borrador'),
     fechaEnvio: date('fecha_envio'),
+    fechaAprobacion: date('fecha_aprobacion'),
     proximoSeguimiento: date('proximo_seguimiento'),
     motivoPerdida: text('motivo_perdida'),
     notas: text('notas'),

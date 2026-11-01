@@ -33,3 +33,10 @@ export const getUsuarioActual = cache(async (): Promise<Usuario> => {
   if (!usuario || !usuario.activo) redirect('/salir')
   return usuario
 })
+
+/** Para acciones que modifican datos: el usuario de dirección sólo consulta. */
+export async function requerirEdicion(): Promise<Usuario> {
+  const usuario = await getUsuarioActual()
+  if (usuario.rol === 'direccion') throw new Error('Tu usuario es de consulta: no puede modificar datos.')
+  return usuario
+}

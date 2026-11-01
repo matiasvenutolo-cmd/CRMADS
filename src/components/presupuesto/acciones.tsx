@@ -9,6 +9,7 @@ import { Panel } from '@/components/ui/panel'
 import { Field, Input, Select, Textarea } from '@/components/ui/field'
 import { useToast } from '@/components/ui/toast'
 import { Punto } from '@/components/ui/estado'
+import { usePuedeEditar } from '@/components/shell/permisos'
 import { PresupuestoForm } from '@/components/forms/presupuesto-form'
 import { cambiarEstado, ganarYCrearObra, marcarPerdido, reabrirPresupuesto } from '@/lib/actions/presupuestos'
 import { opcionesDeClientes } from '@/lib/actions/clientes'
@@ -22,7 +23,15 @@ export function SelectorEstado({ presupuesto }: Props) {
   const toast = useToast()
   const [pendiente, start] = useTransition()
   const e = ESTADOS_PRESUPUESTO[presupuesto.estado as EstadoPresupuesto]
+  const puedeEditar = usePuedeEditar()
   if (!['borrador', 'enviado', 'negociacion'].includes(presupuesto.estado)) return null
+  if (!puedeEditar)
+    return (
+      <span className="flex h-8 items-center gap-2 text-[13px] font-medium text-ink">
+        <Punto color={e.color} />
+        {e.label}
+      </span>
+    )
 
   return (
     <Menu
@@ -70,16 +79,18 @@ export function AccionesPresupuesto({ presupuesto, hoy }: Props) {
   const [pendiente, start] = useTransition()
   const [modal, setModal] = useState<'ganar' | 'perder' | 'editar' | null>(null)
   const [opciones, setOpciones] = useState<{ id: string; nombre: string }[]>([])
+  const [aprobacion, setAprobacion] = useState(hoy)
   const [inicio, setInicio] = useState(hoy)
   const [fin, setFin] = useState('')
   const [etapa, setEtapa] = useState('1')
   const [motivo, setMotivo] = useState('')
   const [nota, setNota] = useState('')
   const activo = ['borrador', 'enviado', 'negociacion'].includes(presupuesto.estado)
+  const puedeEditar = usePuedeEditar()
 
   const ganar = () =>
     start(async () => {
-      const r = await ganarYCrearObra(presupuesto.id, { fechaInicio: inicio, fechaFinEstimada: fin, etapaActual: Number(etapa) })
+      const r = await ganarYCrearObra(presupuesto.id, { fechaAprobacion: aprobacion, fechaInicio: inicio, fechaFinEstimada: fin, etapaActual: Number(etapa) })
       if (!r.ok) return toast(r.error, 'error')
       toast('¡Ganado! La obra ya está en marcha')
       router.push(`/obras/${r.data!.obraId}`)
@@ -99,6 +110,7 @@ export function AccionesPresupuesto({ presupuesto, hoy }: Props) {
       router.refresh()
     })
 
+  if (!puedeEditar) return null
   return (
     <>
       {activo && (
@@ -157,6 +169,9 @@ export function AccionesPresupuesto({ presupuesto, hoy }: Props) {
           </>
         }
       >
+        <Field label="Fecha de aprobación" htmlFor="g-aprob" hint="El día que el cliente aprobó el presupuesto." className="mb-4">
+          <Input id="g-aprob" type="date" value={aprobacion} max={hoy} onChange={(e) => setAprobacion(e.target.value)} className="w-48" />
+        </Field>
         <Field label="¿En qué etapa está la obra?" htmlFor="g-etapa" hint="Si recién arranca, dejala en la 1. Las anteriores quedan completas." className="mb-4">
           <Select id="g-etapa" value={etapa} onChange={(e) => setEtapa(e.target.value)}>
             {ETAPAS_OBRA.map((e, i) => (
