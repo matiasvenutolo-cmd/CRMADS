@@ -15,12 +15,13 @@ export function EstadoPresupuestoLabel({ estado, className }: { estado: string; 
   )
 }
 
-export function Aviso({ children, tono = 'warn' }: { children: React.ReactNode; tono?: 'warn' | 'bad' | 'ok' | 'accent' }) {
+export function Aviso({ children, tono = 'warn' }: { children: React.ReactNode; tono?: 'warn' | 'bad' | 'ok' | 'accent' | 'neutro' }) {
   const tonos = {
     warn: 'bg-warn-soft text-warn',
     bad: 'bg-bad-soft text-bad',
     ok: 'bg-ok-soft text-ok',
     accent: 'bg-accent-soft text-accent',
+    neutro: 'bg-ink/[0.05] text-ink-3',
   }
   return <span className={cn('inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[12px] font-medium', tonos[tono])}>{children}</span>
 }

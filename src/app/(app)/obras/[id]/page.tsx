@@ -14,6 +14,7 @@ import { ContactoRapido } from '@/components/comun/contacto-rapido'
 import { Recorrido } from '@/components/obra/recorrido'
 import { EtapaActual } from '@/components/obra/etapa-actual'
 import { PlanosEnviados } from '@/components/obra/planos-enviados'
+import { Compras } from '@/components/obra/compras'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const o = await getObra((await params).id)
@@ -34,6 +35,7 @@ export default async function ObraPage({ params }: { params: Promise<{ id: strin
   const sueltos = o.adjuntos.filter((a) => !a.categoria)
   const etapaPlanos = o.etapas.find((e) => e.orden === ETAPA.planos)
   const verPlanos = planos.length > 0 || !!o.planosEnviados || etapaActual >= ETAPA.planos
+  const verCompras = o.compras.length > 0 || etapaActual >= ETAPA.replanteo
   const verActa = actas.length > 0 || etapaActual >= ETAPA.pruebas
   const desvio = o.fechaFin && o.fechaFinEstimada ? diferenciaDias(o.fechaFinEstimada, o.fechaFin) : null
   const municipal = o.municipal === 'si' ? (o.fechaMunicipal ? `Aprobada el ${fechaCorta(o.fechaMunicipal)}` : 'A cargo de ADS · en trámite') : o.municipal === 'no' ? MUNICIPAL.no : null
@@ -137,6 +139,14 @@ export default async function ObraPage({ params }: { params: Promise<{ id: strin
                   </div>
                 </dl>
                 <Archivos destino={{ obraId: o.id }} archivos={planos} categoria="planos" textoSubir="Subir planos" />
+              </Surface>
+            </section>
+          )}
+          {verCompras && (
+            <section>
+              <h2 className="mb-3 font-serif text-[24px] text-ink">Compras de materiales</h2>
+              <Surface className="p-4">
+                <Compras obraId={o.id} compras={o.compras} proveedores={o.proveedores} hoy={hoy} />
               </Surface>
             </section>
           )}

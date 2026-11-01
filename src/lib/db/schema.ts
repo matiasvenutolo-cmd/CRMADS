@@ -99,6 +99,25 @@ export const etapas = pgTable(
   (t) => [uniqueIndex('etapas_obra_orden_uq').on(t.obraId, t.orden)]
 )
 
+// Compras de materiales de cada obra: qué se le compra a cada proveedor y cuándo.
+export const compras = pgTable(
+  'compras',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    obraId: uuid('obra_id')
+      .notNull()
+      .references(() => obras.id, { onDelete: 'cascade' }),
+    proveedor: text('proveedor').notNull(),
+    detalle: text('detalle'),
+    compraPrevista: date('compra_prevista'),
+    fechaCompra: date('fecha_compra'),
+    // Previsión de fin de producción que da el proveedor.
+    finProduccion: date('fin_produccion'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('compras_obra_idx').on(t.obraId)]
+)
+
 export const eventos = pgTable(
   'eventos',
   {
@@ -139,3 +158,4 @@ export type Obra = typeof obras.$inferSelect
 export type Etapa = typeof etapas.$inferSelect
 export type Evento = typeof eventos.$inferSelect
 export type Archivo = typeof archivos.$inferSelect
+export type Compra = typeof compras.$inferSelect

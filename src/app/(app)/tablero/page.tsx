@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { datosTablero } from '@/lib/data/tablero'
 import { getUsuarioActual } from '@/lib/session'
-import { fechaLarga } from '@/lib/fechas'
+import { fechaCorta, fechaLarga } from '@/lib/fechas'
+import type { DatosTablero } from '@/lib/data/tablero'
 import { BuscadorTablero } from '@/components/tablero/buscador'
 import { Columnas, Embudo, FilaBarra, PrecioPorParadas, Tarjeta, miles, pct, usd } from '@/components/tablero/graficos'
 
@@ -245,6 +246,25 @@ export default async function TableroPage() {
       </div>
 
       <div className="mt-5">
+        <Tarjeta
+          kicker="Cronograma de compras"
+          titulo={d.compras.total ? (d.compras.porComprar.length === 1 ? '1 compra por hacer' : `${d.compras.porComprar.length} compras por hacer`) : 'Sin compras cargadas'}
+          lectura={
+            d.compras.total
+              ? [d.compras.vencidas && `${d.compras.vencidas} con la fecha de compra vencida`, `${d.compras.enProduccion.length} en producción`, `${d.compras.proveedores} proveedores`].filter(Boolean).join(' · ')
+              : 'Cuando se carguen las compras de cada obra, acá se ve qué hay que comprar y cuándo termina cada proveedor.'
+          }
+        >
+          {d.compras.total > 0 && (
+            <div className="grid gap-6 md:grid-cols-2">
+              <ListaCompras titulo="Por comprar" items={d.compras.porComprar.slice(0, 8)} hoy={d.hoy} fecha={(c) => c.compraPrevista} vacio="Nada pendiente de compra." />
+              <ListaCompras titulo="En producción · listo para" items={d.compras.enProduccion.slice(0, 8)} hoy={d.hoy} fecha={(c) => c.finProduccion} vacio="Nada en producción con fecha." />
+            </div>
+          )}
+        </Tarjeta>
+      </div>
+
+      <div className="mt-5">
         <Tarjeta kicker="Ritmo comercial" titulo={d.mesesConEnvios >= 2 ? 'Presupuestos enviados por mes' : 'Evolución mensual'} lectura={d.mesesConEnvios < 2 ? 'La evolución mes a mes se completa a medida que se cargan presupuestos nuevos con su fecha de envío.' : 'Cantidad de presupuestos enviados en cada mes.'}>
           {d.mesesConEnvios >= 2 && (
             <Columnas
@@ -265,6 +285,42 @@ function Kpi({ label, valor, detalle, acento }: { label: string; valor: string; 
       <dt className="kicker kicker-claro">{label}</dt>
       <dd className={`mt-2 font-serif text-[34px] leading-none md:text-[44px] ${acento ? 'text-naranja' : 'text-white'}`}>{valor}</dd>
       <dd className="mt-2 text-[12.5px] leading-snug text-white/70">{detalle}</dd>
+    </div>
+  )
+}
+
+type ItemCompra = DatosTablero['compras']['porComprar'][number]
+
+function ListaCompras({ titulo, items, hoy, fecha, vacio }: { titulo: string; items: ItemCompra[]; hoy: string; fecha: (c: ItemCompra) => string | null; vacio: string }) {
+  return (
+    <div>
+      <p className="mb-2 text-[12.5px] text-ink-3">{titulo}</p>
+      {items.length === 0 ? (
+        <p className="text-[13.5px] text-ink-3">{vacio}</p>
+      ) : (
+        <ul className="divide-y divide-line">
+          {items.map((c) => {
+            const f = fecha(c)
+            const vencida = !!f && f < hoy
+            return (
+              <li key={c.id}>
+                <a href={`/obras/${c.obraId}`} className="group flex items-baseline gap-3 py-2.5">
+                  <span className={`w-14 shrink-0 font-mono text-[12.5px] ${vencida ? 'text-warn' : 'text-ink-2'}`}>{f ? fechaCorta(f) : '—'}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[14px] font-medium text-ink group-hover:underline">
+                      {c.proveedor}
+                      {c.detalle && <span className="font-normal text-ink-3"> · {c.detalle}</span>}
+                    </span>
+                    <span className="block truncate text-[12.5px] text-ink-3">
+                      {c.obra} · {c.cliente}
+                    </span>
+                  </span>
+                </a>
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </div>
   )
 }

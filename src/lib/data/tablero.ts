@@ -1,7 +1,7 @@
 import 'server-only'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
-import { clientes, etapas, obras, presupuestos } from '@/lib/db/schema'
+import { clientes, compras, etapas, obras, presupuestos } from '@/lib/db/schema'
 import { ESTADOS_ACTIVOS, ETAPAS_OBRA, type EstadoPresupuesto } from '@/lib/dominio'
 import { diferenciaDias, hoyISO } from '@/lib/fechas'
 
@@ -29,7 +29,7 @@ function trimestre(iso: string) {
 export async function datosTablero() {
   const hoy = hoyISO()
 
-  const [filas, filasObras, filasEtapas] = await Promise.all([
+  const [filas, filasObras, filasEtapas, filasCompras] = await Promise.all([
     db
       .select({
         id: presupuestos.id,
@@ -50,6 +50,12 @@ export async function datosTablero() {
       .innerJoin(clientes, eq(clientes.id, presupuestos.clienteId)),
     db.select({ id: obras.id, estado: obras.estado, equipos: obras.cantidadEquipos, fechaInicio: obras.fechaInicio, fechaFinEstimada: obras.fechaFinEstimada, fechaFin: obras.fechaFin }).from(obras),
     db.select({ obraId: etapas.obraId, orden: etapas.orden, estado: etapas.estado, fechaPrevista: etapas.fechaPrevista }).from(etapas),
+    db
+      .select({ id: compras.id, obraId: obras.id, obra: obras.direccion, cliente: clientes.nombre, proveedor: compras.proveedor, detalle: compras.detalle, compraPrevista: compras.compraPrevista, fechaCompra: compras.fechaCompra, finProduccion: compras.finProduccion })
+      .from(compras)
+      .innerJoin(obras, eq(obras.id, compras.obraId))
+      .innerJoin(clientes, eq(clientes.id, obras.clienteId))
+      .where(eq(obras.estado, 'en_curso')),
   ])
 
   // Todo el análisis comercial es en dólares (es como cotiza ADS). Lo que esté en pesos se informa aparte.
@@ -228,6 +234,17 @@ export async function datosTablero() {
     entregas: [...entregasMap.values()].sort((a, b) => a.trimestre.localeCompare(b.trimestre)),
   }
 
+  // Cronograma de compras: lo que falta comprar y la producción que está por terminar.
+  const porComprar = filasCompras.filter((c) => !c.fechaCompra).sort((a, b) => (a.compraPrevista ?? '9999').localeCompare(b.compraPrevista ?? '9999'))
+  const enProduccion = filasCompras.filter((c) => c.fechaCompra && c.finProduccion).sort((a, b) => a.finProduccion!.localeCompare(b.finProduccion!))
+  const comprasInfo = {
+    total: filasCompras.length,
+    porComprar,
+    vencidas: porComprar.filter((c) => c.compraPrevista && c.compraPrevista < hoy).length,
+    enProduccion,
+    proveedores: new Set(filasCompras.map((c) => c.proveedor)).size,
+  }
+
   return {
     hoy,
     hayDatos: filas.length > 0,
@@ -244,6 +261,7 @@ export async function datosTablero() {
     ritmo: ritmo.slice(-12),
     mesesConEnvios,
     obras: obrasInfo,
+    compras: comprasInfo,
   }
 }
 
