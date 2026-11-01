@@ -17,7 +17,7 @@ import { ETAPA, FECHA_DE_ETAPA } from '@/lib/dominio'
 import { diferenciaDias, fechaCorta, relativo } from '@/lib/fechas'
 import type { Etapa, Obra } from '@/lib/db/schema'
 
-export function EtapaActual({ obra, etapas, hoy }: { obra: Obra; etapas: Etapa[]; hoy: string }) {
+export function EtapaActual({ obra, etapas, hoy, montadores }: { obra: Obra; etapas: Etapa[]; hoy: string; montadores: string[] }) {
   const router = useRouter()
   const toast = useToast()
   const [pendiente, start] = useTransition()
@@ -286,12 +286,17 @@ export function EtapaActual({ obra, etapas, hoy }: { obra: Obra; etapas: Etapa[]
             <Input id="m-inicio" type="date" value={inicioMontaje} onChange={(e) => setInicioMontaje(e.target.value)} className="w-48" />
           </Field>
           <Field label="Montador" htmlFor="m-montador" hint="Quién está a cargo del montaje.">
-            <Input id="m-montador" value={montador} onChange={(e) => setMontador(e.target.value)} data-autofocus />
+            <Input id="m-montador" list="montadores-m" value={montador} onChange={(e) => setMontador(e.target.value)} data-autofocus />
+            <datalist id="montadores-m">
+              {montadores.map((m) => (
+                <option key={m} value={m} />
+              ))}
+            </datalist>
           </Field>
         </div>
       </Panel>
 
-      {modal === 'editar' && <ObraForm abierto onCerrar={() => setModal(null)} opciones={[]} hoy={hoy} existente={obra} />}
+      {modal === 'editar' && <ObraForm abierto onCerrar={() => setModal(null)} opciones={[]} hoy={hoy} existente={obra} montadores={montadores} />}
     </section>
   )
 }

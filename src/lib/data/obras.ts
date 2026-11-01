@@ -1,5 +1,5 @@
 import 'server-only'
-import { and, asc, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, ilike, inArray, isNotNull, or, sql } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { archivos, clientes, compras, pagos, etapas, eventos, obras, presupuestos, usuarios, type Etapa } from '@/lib/db/schema'
 import { hoyISO } from '@/lib/fechas'
@@ -65,7 +65,7 @@ export async function getObra(id: string) {
   const o = await db.query.obras.findFirst({ where: eq(obras.id, id) })
   if (!o) return null
   const delPresupuesto = o.presupuestoId ? eq(eventos.presupuestoId, o.presupuestoId) : undefined
-  const [cliente, listaEtapas, historial, adjuntos, presupuesto, listaCompras, proveedores, listaPagos] = await Promise.all([
+  const [cliente, listaEtapas, historial, adjuntos, presupuesto, listaCompras, proveedores, listaPagos, montadores] = await Promise.all([
     db.query.clientes.findFirst({ where: eq(clientes.id, o.clienteId) }),
     db.select().from(etapas).where(eq(etapas.obraId, id)).orderBy(asc(etapas.orden)),
     db
@@ -83,6 +83,7 @@ export async function getObra(id: string) {
     db.select().from(compras).where(eq(compras.obraId, id)).orderBy(asc(compras.createdAt)),
     db.selectDistinct({ proveedor: compras.proveedor }).from(compras).orderBy(asc(compras.proveedor)),
     db.select().from(pagos).where(eq(pagos.obraId, id)).orderBy(asc(pagos.createdAt)),
+    db.selectDistinct({ montador: obras.montador }).from(obras).where(isNotNull(obras.montador)).orderBy(asc(obras.montador)),
   ])
-  return { ...o, cliente: cliente!, etapas: listaEtapas, resumen: resumirEtapas(listaEtapas), historial, adjuntos, presupuesto: presupuesto ?? null, compras: listaCompras, proveedores: proveedores.map((p) => p.proveedor), pagos: listaPagos }
+  return { ...o, cliente: cliente!, etapas: listaEtapas, resumen: resumirEtapas(listaEtapas), historial, adjuntos, presupuesto: presupuesto ?? null, compras: listaCompras, proveedores: proveedores.map((p) => p.proveedor), pagos: listaPagos, montadores: montadores.map((m) => m.montador!) }
 }

@@ -12,7 +12,7 @@ import { crearObra, editarObra } from '@/lib/actions/obras'
 import { ETAPAS_OBRA, LOCALIDADES_SUGERIDAS, MUNICIPAL, TIPOLOGIAS } from '@/lib/dominio'
 import type { Obra } from '@/lib/db/schema'
 
-export function ObraForm({ abierto, onCerrar, opciones, hoy, existente }: { abierto: boolean; onCerrar: () => void; opciones: { id: string; nombre: string }[]; hoy: string; existente?: Obra }) {
+export function ObraForm({ abierto, onCerrar, opciones, hoy, existente, montadores = [] }: { abierto: boolean; onCerrar: () => void; opciones: { id: string; nombre: string }[]; hoy: string; existente?: Obra; montadores?: string[] }) {
   const router = useRouter()
   const toast = useToast()
   const [pendiente, start] = useTransition()
@@ -142,7 +142,12 @@ export function ObraForm({ abierto, onCerrar, opciones, hoy, existente }: { abie
           )}
         </div>
         <Field label="Montador" htmlFor="o-montador" hint="Opcional. Quién está a cargo del montaje.">
-          <Input id="o-montador" value={montador} onChange={(e) => setMontador(e.target.value)} />
+          <Input id="o-montador" list="montadores-o" value={montador} onChange={(e) => setMontador(e.target.value)} />
+          <datalist id="montadores-o">
+            {montadores.map((m) => (
+              <option key={m} value={m} />
+            ))}
+          </datalist>
         </Field>
         <CamposTecnicos valor={tecnicos} onChange={setTecnicos} />
         <Field label="Notas" htmlFor="o-notas">

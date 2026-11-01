@@ -83,7 +83,7 @@ export default async function ObraPage({ params }: { params: Promise<{ id: strin
         }
       />
 
-      <EtapaActual obra={o} etapas={o.etapas} hoy={hoy} />
+      <EtapaActual obra={o} etapas={o.etapas} hoy={hoy} montadores={o.montadores} />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         <aside className="order-2 flex flex-col gap-5 lg:order-none">
