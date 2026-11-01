@@ -1,7 +1,7 @@
 import 'server-only'
 import { and, asc, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
-import { archivos, clientes, eventos, obras, presupuestos, usuarios } from '@/lib/db/schema'
+import { archivos, clientes, eventos, obras, presupuestos, usuarios, presupuestoVersiones } from '@/lib/db/schema'
 import { ESTADOS_ACTIVOS } from '@/lib/dominio'
 
 export type FiltroPresupuestos = 'activos' | 'ganados' | 'perdidos' | 'todos'
@@ -13,7 +13,7 @@ export async function listarPresupuestos(filtro: FiltroPresupuestos, q?: string)
   if (filtro === 'perdidos') condiciones.push(eq(presupuestos.estado, 'perdido'))
   if (q?.trim()) {
     const like = `%${q.trim()}%`
-    condiciones.push(or(ilike(clientes.nombre, like), ilike(presupuestos.direccion, like), ilike(presupuestos.localidad, like), sql`'P-' || lpad(${presupuestos.numero}::text, 4, '0') ilike ${like}`, sql`'ADS ' || ${presupuestos.numeroAds} ilike ${like}`, ilike(presupuestos.numeroAds, `%${q.trim().replace(/^ads[\s\-_.]*/i, '')}%`)))
+    condiciones.push(or(ilike(clientes.nombre, like), ilike(presupuestos.direccion, like), ilike(presupuestos.localidad, like), sql`'P-' || lpad(${presupuestos.numero}::text, 4, '0') ilike ${like}`, sql`'ADS ' || ${presupuestos.numeroAds} ilike ${like}`, sql`${presupuestos.numeroAds} || coalesce('-' || ${presupuestos.version}, '') ilike ${`%${q.trim().replace(/^ads[\s\-_.]*/i, '')}%`}`))
   }
 
   return db
@@ -21,6 +21,7 @@ export async function listarPresupuestos(filtro: FiltroPresupuestos, q?: string)
       id: presupuestos.id,
       numero: presupuestos.numero,
       numeroAds: presupuestos.numeroAds,
+      version: presupuestos.version,
       direccion: presupuestos.direccion,
       localidad: presupuestos.localidad,
       tipologia: presupuestos.tipologia,
@@ -49,7 +50,7 @@ export async function contarPresupuestos() {
 export async function getPresupuesto(id: string) {
   const p = await db.query.presupuestos.findFirst({ where: eq(presupuestos.id, id) })
   if (!p) return null
-  const [cliente, historial, adjuntos, obra] = await Promise.all([
+  const [cliente, historial, adjuntos, obra, versiones] = await Promise.all([
     db.query.clientes.findFirst({ where: eq(clientes.id, p.clienteId) }),
     db
       .select({ id: eventos.id, tipo: eventos.tipo, texto: eventos.texto, createdAt: eventos.createdAt, autor: usuarios.nombre })
@@ -59,8 +60,9 @@ export async function getPresupuesto(id: string) {
       .orderBy(desc(eventos.createdAt)),
     db.select().from(archivos).where(eq(archivos.presupuestoId, id)).orderBy(desc(archivos.createdAt)),
     db.query.obras.findFirst({ where: eq(obras.presupuestoId, id), columns: { id: true, numero: true } }),
+    db.select().from(presupuestoVersiones).where(eq(presupuestoVersiones.presupuestoId, id)).orderBy(desc(presupuestoVersiones.createdAt)),
   ])
-  return { ...p, cliente: cliente!, historial, adjuntos, obra: obra ?? null }
+  return { ...p, cliente: cliente!, historial, adjuntos, obra: obra ?? null, versiones }
 }
 
 export async function opcionesClientes() {

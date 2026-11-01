@@ -29,6 +29,8 @@ export const presupuestos = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     numero: integer('numero').generatedAlwaysAsIdentity().notNull(),
     numeroAds: text('numero_ads'),
+    // Versión vigente: null = la original; 'B', 'C'… cuando se modifica (ADS 8608-B).
+    version: text('version'),
     clienteId: uuid('cliente_id').notNull().references(() => clientes.id),
     direccion: text('direccion').notNull(),
     localidad: text('localidad'),
@@ -97,6 +99,31 @@ export const etapas = pgTable(
     fechaFin: date('fecha_fin'),
   },
   (t) => [uniqueIndex('etapas_obra_orden_uq').on(t.obraId, t.orden)]
+)
+
+// Versiones anteriores de un presupuesto. El presupuesto guarda siempre la vigente;
+// al crear una nueva, la anterior queda acá tal como estaba.
+export const presupuestoVersiones = pgTable(
+  'presupuesto_versiones',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    presupuestoId: uuid('presupuesto_id')
+      .notNull()
+      .references(() => presupuestos.id, { onDelete: 'cascade' }),
+    version: text('version'),
+    fechaEnvio: date('fecha_envio'),
+    monto: numeric('monto', { precision: 14, scale: 2, mode: 'number' }),
+    moneda: text('moneda').notNull(),
+    tipologia: text('tipologia').notNull(),
+    cantidadEquipos: integer('cantidad_equipos').notNull(),
+    cargaKg: integer('carga_kg'),
+    paradas: integer('paradas'),
+    velocidad: text('velocidad'),
+    // Qué cambió en la versión que la reemplazó.
+    cambios: text('cambios'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('presupuesto_versiones_presupuesto_idx').on(t.presupuestoId)]
 )
 
 // Compras de materiales de cada obra: qué se le compra a cada proveedor y cuándo.
@@ -182,3 +209,4 @@ export type Evento = typeof eventos.$inferSelect
 export type Archivo = typeof archivos.$inferSelect
 export type Compra = typeof compras.$inferSelect
 export type Pago = typeof pagos.$inferSelect
+export type PresupuestoVersion = typeof presupuestoVersiones.$inferSelect

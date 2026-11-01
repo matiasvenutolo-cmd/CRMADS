@@ -74,9 +74,15 @@ export type Moneda = (typeof MONEDAS)[number]
 export function codigoPresupuesto(numero: number) {
   return `P-${String(numero).padStart(4, '0')}`
 }
-/** Número interno de ADS si está cargado ("ADS 8608"); si no, el código del sistema. */
-export function etiquetaPresupuesto(p: { numero: number; numeroAds?: string | null }) {
-  return p.numeroAds ? `ADS ${p.numeroAds}` : codigoPresupuesto(p.numero)
+/** Número interno de ADS si está cargado ("ADS 8608", "ADS 8608-B"); si no, el código del sistema. */
+export function etiquetaPresupuesto(p: { numero: number; numeroAds?: string | null; version?: string | null }) {
+  const sufijo = p.version ? `-${p.version}` : ''
+  return p.numeroAds ? `ADS ${p.numeroAds}${sufijo}` : `${codigoPresupuesto(p.numero)}${sufijo}`
+}
+
+/** Letra de la versión siguiente: original → B → C… */
+export function siguienteVersion(actual: string | null | undefined) {
+  return actual ? String.fromCharCode(actual.charCodeAt(0) + 1) : 'B'
 }
 
 /** "ADS 8608", "ads-8608", "8608" → "8608". */

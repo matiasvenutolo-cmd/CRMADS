@@ -16,10 +16,10 @@ export async function buscar(q: string): Promise<ResultadoBusqueda[]> {
 
   const [ps, os, cs] = await Promise.all([
     db
-      .select({ id: presupuestos.id, numero: presupuestos.numero, numeroAds: presupuestos.numeroAds, direccion: presupuestos.direccion, cliente: clientes.nombre })
+      .select({ id: presupuestos.id, numero: presupuestos.numero, numeroAds: presupuestos.numeroAds, version: presupuestos.version, direccion: presupuestos.direccion, cliente: clientes.nombre })
       .from(presupuestos)
       .innerJoin(clientes, eq(clientes.id, presupuestos.clienteId))
-      .where(or(ilike(presupuestos.direccion, like), ilike(clientes.nombre, like), sql`'P-' || lpad(${presupuestos.numero}::text, 4, '0') ilike ${like}`, sql`'ADS ' || ${presupuestos.numeroAds} ilike ${like}`, sql`${presupuestos.numeroAds} ilike ${`%${t.replace(/^ads[\s\-_.]*/i, '')}%`}`))
+      .where(or(ilike(presupuestos.direccion, like), ilike(clientes.nombre, like), sql`'P-' || lpad(${presupuestos.numero}::text, 4, '0') ilike ${like}`, sql`'ADS ' || ${presupuestos.numeroAds} ilike ${like}`, sql`${presupuestos.numeroAds} || coalesce('-' || ${presupuestos.version}, '') ilike ${`%${t.replace(/^ads[\s\-_.]*/i, '')}%`}`))
       .orderBy(desc(presupuestos.updatedAt))
       .limit(6),
     db

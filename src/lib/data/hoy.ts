@@ -9,6 +9,7 @@ const columnasPresupuesto = {
   id: presupuestos.id,
   numero: presupuestos.numero,
   numeroAds: presupuestos.numeroAds,
+  version: presupuestos.version,
   direccion: presupuestos.direccion,
   estado: presupuestos.estado,
   monto: presupuestos.monto,

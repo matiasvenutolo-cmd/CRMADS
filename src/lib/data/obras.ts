@@ -79,7 +79,7 @@ export async function getObra(id: string) {
       .from(archivos)
       .where(o.presupuestoId ? or(eq(archivos.obraId, id), eq(archivos.presupuestoId, o.presupuestoId)) : eq(archivos.obraId, id))
       .orderBy(desc(archivos.createdAt)),
-    o.presupuestoId ? db.query.presupuestos.findFirst({ where: eq(presupuestos.id, o.presupuestoId), columns: { id: true, numero: true, numeroAds: true, monto: true, moneda: true } }) : null,
+    o.presupuestoId ? db.query.presupuestos.findFirst({ where: eq(presupuestos.id, o.presupuestoId), columns: { id: true, numero: true, numeroAds: true, version: true, monto: true, moneda: true } }) : null,
     db.select().from(compras).where(eq(compras.obraId, id)).orderBy(asc(compras.createdAt)),
     db.selectDistinct({ proveedor: compras.proveedor }).from(compras).orderBy(asc(compras.proveedor)),
     db.select().from(pagos).where(eq(pagos.obraId, id)).orderBy(asc(pagos.createdAt)),

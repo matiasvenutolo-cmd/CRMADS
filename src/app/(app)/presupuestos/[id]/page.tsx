@@ -6,7 +6,7 @@ import { ContactoRapido } from '@/components/comun/contacto-rapido'
 import { getPresupuesto } from '@/lib/data/presupuestos'
 import { codigoObra, codigoPresupuesto, etiquetaPresupuesto, velocidadLegible } from '@/lib/dominio'
 import { dinero } from '@/lib/formato'
-import { hoyISO } from '@/lib/fechas'
+import { fechaCorta, hoyISO } from '@/lib/fechas'
 import { PageHead, Codigo } from '@/components/comun/page-head'
 import { Surface, SurfaceHeader } from '@/components/ui/surface'
 import { EstadoPresupuestoLabel } from '@/components/ui/estado'
@@ -109,6 +109,34 @@ export default async function PresupuestoPage({ params }: { params: Promise<{ id
               <ContactoRapido telefono={p.cliente.telefono} email={p.cliente.email} />
             </div>
           </Surface>
+          {p.versiones.length > 0 && (
+            <Surface>
+              <SurfaceHeader titulo="Versiones" accion={<span className="text-[12.5px] text-ink-3">{p.versiones.length + 1}</span>} />
+              <ol className="divide-y divide-line">
+                <li className="px-5 py-3">
+                  <p className="flex items-baseline justify-between gap-3 text-[13.5px]">
+                    <span className="font-mono font-semibold text-ink">{etiquetaPresupuesto(p)}</span>
+                    <span className="rounded-full bg-ok-soft px-2 py-0.5 text-[11.5px] font-medium text-ok">Vigente</span>
+                  </p>
+                  <p className="mt-0.5 text-[12.5px] text-ink-3">
+                    {[p.fechaEnvio && `Enviada el ${fechaCorta(p.fechaEnvio)}`, p.monto != null && dinero(p.monto, p.moneda)].filter(Boolean).join(' · ')}
+                  </p>
+                </li>
+                {p.versiones.map((v) => (
+                  <li key={v.id} className="px-5 py-3">
+                    <p className="flex items-baseline justify-between gap-3 text-[13.5px]">
+                      <span className="font-mono text-ink-2">{etiquetaPresupuesto({ numero: p.numero, numeroAds: p.numeroAds, version: v.version })}</span>
+                      <span className="tabular text-ink-2">{v.monto != null ? dinero(v.monto, v.moneda) : 'Sin monto'}</span>
+                    </p>
+                    <p className="mt-0.5 text-[12.5px] text-ink-3">
+                      {[v.fechaEnvio && `Enviada el ${fechaCorta(v.fechaEnvio)}`, `${v.cantidadEquipos} eq.`, v.paradas && `${v.paradas} paradas`].filter(Boolean).join(' · ')}
+                    </p>
+                    {v.cambios && <p className="mt-1 text-[12.5px] text-ink-2">Después: {v.cambios}</p>}
+                  </li>
+                ))}
+              </ol>
+            </Surface>
+          )}
           <Surface>
             <SurfaceHeader titulo="Archivos" />
             <div className="p-4">

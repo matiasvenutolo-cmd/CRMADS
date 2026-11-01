@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, X, MoreHorizontal, Pencil, RotateCcw, ChevronDown } from 'lucide-react'
+import { Check, X, MoreHorizontal, Pencil, RotateCcw, ChevronDown, CopyPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Menu, MenuItem } from '@/components/ui/menu'
 import { Panel } from '@/components/ui/panel'
@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/toast'
 import { Punto } from '@/components/ui/estado'
 import { usePuedeEditar } from '@/components/shell/permisos'
 import { PresupuestoForm } from '@/components/forms/presupuesto-form'
+import { NuevaVersion } from './nueva-version'
 import { cambiarEstado, ganarYCrearObra, marcarPerdido, reabrirPresupuesto } from '@/lib/actions/presupuestos'
 import { opcionesDeClientes } from '@/lib/actions/clientes'
 import { ESTADOS_PRESUPUESTO, ETAPAS_OBRA, MOTIVOS_PERDIDA, type EstadoPresupuesto } from '@/lib/dominio'
@@ -77,7 +78,7 @@ export function AccionesPresupuesto({ presupuesto, hoy }: Props) {
   const router = useRouter()
   const toast = useToast()
   const [pendiente, start] = useTransition()
-  const [modal, setModal] = useState<'ganar' | 'perder' | 'editar' | null>(null)
+  const [modal, setModal] = useState<'ganar' | 'perder' | 'editar' | 'version' | null>(null)
   const [opciones, setOpciones] = useState<{ id: string; nombre: string }[]>([])
   const [aprobacion, setAprobacion] = useState(hoy)
   const [inicio, setInicio] = useState(hoy)
@@ -144,6 +145,11 @@ export function AccionesPresupuesto({ presupuesto, hoy }: Props) {
             >
               Editar datos
             </MenuItem>
+            {presupuesto.estado !== 'perdido' && (
+              <MenuItem icono={<CopyPlus />} onClick={() => (cerrar(), setModal('version'))}>
+                Nueva versión (cambios al presupuesto)
+              </MenuItem>
+            )}
             {presupuesto.estado === 'perdido' && (
               <MenuItem icono={<RotateCcw />} onClick={() => (cerrar(), reabrir())}>
                 Reabrir presupuesto
@@ -225,6 +231,7 @@ export function AccionesPresupuesto({ presupuesto, hoy }: Props) {
       </Panel>
 
       {modal === 'editar' && <PresupuestoForm abierto onCerrar={() => setModal(null)} opciones={opciones} hoy={hoy} existente={presupuesto} />}
+      {modal === 'version' && <NuevaVersion presupuesto={presupuesto} hoy={hoy} onCerrar={() => setModal(null)} />}
     </>
   )
 }

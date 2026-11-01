@@ -3,9 +3,9 @@
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db/client'
-import { clientes, etapas, obras, presupuestos } from '@/lib/db/schema'
+import { clientes, etapas, obras, presupuestoVersiones, presupuestos } from '@/lib/db/schema'
 import { requerirEdicion } from '@/lib/session'
-import { ESTADOS_PRESUPUESTO, ETAPAS_OBRA, TIPOS_CONTACTO, codigoObra, normalizarNumeroAds, type EstadoPresupuesto, type TipoContacto } from '@/lib/dominio'
+import { ESTADOS_PRESUPUESTO, ETAPAS_OBRA, TIPOS_CONTACTO, codigoObra, etiquetaPresupuesto, normalizarNumeroAds, siguienteVersion, type EstadoPresupuesto, type TipoContacto } from '@/lib/dominio'
 import { dinero } from '@/lib/formato'
 import { fechaCorta, hoyISO } from '@/lib/fechas'
 import { enteroOpcional, fechaOpcional, registrarEvento, textoLimpio, type Resultado } from './comun'
@@ -266,4 +266,58 @@ export async function cambiarFechaEnvio(id: string, fecha: string): Promise<Resu
   })
   revalidatePath('/', 'layout')
   return { ok: true }
+}
+
+export type VersionInput = { cambios: string; fechaEnvio: string; monto?: string; moneda?: string; tipologia: string; cantidadEquipos?: string; cargaKg?: string; paradas?: string; velocidad?: string }
+
+/** Nueva versión (8608 → 8608-B): la vigente queda guardada tal como estaba y el presupuesto toma los datos nuevos. */
+export async function crearVersion(id: string, input: VersionInput): Promise<Resultado<{ version: string }>> {
+  const u = await requerirEdicion()
+  const p = await db.query.presupuestos.findFirst({ where: eq(presupuestos.id, id) })
+  if (!p) return { ok: false, error: 'No existe el presupuesto.' }
+  const cambios = textoLimpio(input.cambios)
+  if (!cambios) return { ok: false, error: 'Contá brevemente qué cambió (se agregó o se sacó algo, cambió el precio…).' }
+  const tipologia = textoLimpio(input.tipologia)
+  if (!tipologia) return { ok: false, error: 'Elegí la tipología.' }
+  const fecha = fechaOpcional(input.fechaEnvio) ?? hoyISO()
+  if (fecha > hoyISO()) return { ok: false, error: 'La fecha de envío no puede ser futura.' }
+  const monto = input.monto ? Number(String(input.monto).replace(/\./g, '')) : null
+  const moneda = input.moneda === 'ARS' ? 'ARS' : 'USD'
+  const nueva = siguienteVersion(p.version)
+
+  await db.transaction(async (tx) => {
+    await tx.insert(presupuestoVersiones).values({
+      presupuestoId: id,
+      version: p.version,
+      fechaEnvio: p.fechaEnvio,
+      monto: p.monto,
+      moneda: p.moneda,
+      tipologia: p.tipologia,
+      cantidadEquipos: p.cantidadEquipos,
+      cargaKg: p.cargaKg,
+      paradas: p.paradas,
+      velocidad: p.velocidad,
+      cambios,
+    })
+    await tx
+      .update(presupuestos)
+      .set({
+        version: nueva,
+        fechaEnvio: fecha,
+        monto: monto != null && Number.isFinite(monto) ? monto : null,
+        moneda,
+        tipologia,
+        cantidadEquipos: enteroOpcional(input.cantidadEquipos) || 1,
+        cargaKg: enteroOpcional(input.cargaKg),
+        paradas: enteroOpcional(input.paradas),
+        velocidad: textoLimpio(input.velocidad),
+        estado: p.estado === 'borrador' ? 'enviado' : p.estado,
+        updatedAt: new Date(),
+      })
+      .where(eq(presupuestos.id, id))
+    const precio = p.monto !== monto ? ` · ${p.monto != null ? dinero(p.monto, p.moneda) : 'sin monto'} → ${monto != null ? dinero(monto, moneda) : 'sin monto'}` : ''
+    await registrarEvento(tx, { presupuestoId: id, tipo: 'estado', texto: `Nueva versión ${etiquetaPresupuesto({ ...p, version: nueva })}, enviada el ${fechaCorta(fecha)}: ${cambios}${precio}`, usuarioId: u.id })
+  })
+  revalidatePath('/', 'layout')
+  return { ok: true, data: { version: nueva } }
 }
