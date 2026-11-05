@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, boolean, timestamp, date, numeric, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, integer, boolean, timestamp, date, numeric, index, uniqueIndex, jsonb } from 'drizzle-orm/pg-core'
 
 export const usuarios = pgTable('usuarios', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -121,6 +121,8 @@ export const presupuestoVersiones = pgTable(
     velocidad: text('velocidad'),
     // Qué cambió en la versión que la reemplazó.
     cambios: text('cambios'),
+    // La cotización tal como estaba en esta versión (si se armó con el cotizador).
+    cotizacion: jsonb('cotizacion'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('presupuesto_versiones_presupuesto_idx').on(t.presupuestoId)]
@@ -200,6 +202,67 @@ export const archivos = pgTable(
   (t) => [index('archivos_presupuesto_idx').on(t.presupuestoId), index('archivos_obra_idx').on(t.obraId)]
 )
 
+// ── Cotizador online ─────────────────────────────────────────────
+// El «crudo» con el que se arman los presupuestos: lo que antes vivía en los Excel y Word.
+
+/** Catálogo de costos: máquinas, puertas, adicionales, fletes, habilitación, mano de obra. */
+export const cotizadorItems = pgTable('cotizador_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  categoria: text('categoria').notNull(),
+  nombre: text('nombre').notNull(),
+  costo: numeric('costo', { precision: 14, scale: 2, mode: 'number' }).notNull().default(0),
+  notas: text('notas'),
+  orden: integer('orden').notNull().default(0),
+  activo: boolean('activo').notNull().default(true),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+/** Precio base de lista del proveedor según tipo de equipo y paradas. */
+export const cotizadorBases = pgTable(
+  'cotizador_bases',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tipo: text('tipo').notNull(),
+    paradas: integer('paradas').notNull(),
+    precio: numeric('precio', { precision: 14, scale: 2, mode: 'number' }).notNull(),
+    detalle: text('detalle'),
+    fuente: text('fuente'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('cotizador_bases_tipo_paradas_uq').on(t.tipo, t.paradas)]
+)
+
+/** Textos del documento: secciones técnicas por tipo de equipo y condiciones generales, con variantes. */
+export const cotizadorTextos = pgTable('cotizador_textos', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  grupo: text('grupo').notNull(), // 'tecnica' | 'condiciones'
+  seccion: text('seccion').notNull(),
+  tipos: text('tipos').array(), // null = todos los tipos
+  variante: text('variante').notNull(),
+  texto: text('texto').notNull(),
+  orden: integer('orden').notNull().default(0),
+  porDefecto: boolean('por_defecto').notNull().default(false),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+/** Parámetros generales: coeficiente, descuentos, IVA, validez… */
+export const cotizadorConfig = pgTable('cotizador_config', {
+  clave: text('clave').primaryKey(),
+  valor: jsonb('valor').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+/** La cotización de un presupuesto (la versión vigente). */
+export const cotizaciones = pgTable('cotizaciones', {
+  presupuestoId: uuid('presupuesto_id')
+    .primaryKey()
+    .references(() => presupuestos.id, { onDelete: 'cascade' }),
+  datos: jsonb('datos').notNull(),
+  usuarioId: uuid('usuario_id').references(() => usuarios.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export type Usuario = typeof usuarios.$inferSelect
 export type Cliente = typeof clientes.$inferSelect
 export type Presupuesto = typeof presupuestos.$inferSelect
@@ -210,3 +273,6 @@ export type Archivo = typeof archivos.$inferSelect
 export type Compra = typeof compras.$inferSelect
 export type Pago = typeof pagos.$inferSelect
 export type PresupuestoVersion = typeof presupuestoVersiones.$inferSelect
+export type CotizadorItem = typeof cotizadorItems.$inferSelect
+export type CotizadorBase = typeof cotizadorBases.$inferSelect
+export type CotizadorTexto = typeof cotizadorTextos.$inferSelect

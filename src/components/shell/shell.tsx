@@ -13,6 +13,7 @@ import { iniciales } from '@/lib/formato'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import { CambiarPassword } from './cambiar-password'
+import { AvisoCotizador } from './aviso-cotizador'
 
 export function Shell({ nombre, direccion, children }: { nombre: string; direccion: boolean; children: React.ReactNode }) {
   const items = direccion ? NAV_DIRECCION : NAV_GESTION
@@ -124,6 +125,7 @@ export function Shell({ nombre, direccion, children }: { nombre: string; direcci
             </Menu>
           </div>
         </div>
+        {!direccion && <AvisoCotizador />}
       </header>
 
       <main className="mx-auto max-w-[1240px] px-4 pb-32 pt-7 md:px-8 md:pb-16 md:pt-10">{children}</main>

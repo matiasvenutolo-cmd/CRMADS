@@ -4,9 +4,12 @@ import { notFound } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 import { ContactoRapido } from '@/components/comun/contacto-rapido'
 import { getPresupuesto } from '@/lib/data/presupuestos'
+import { getCotizacion } from '@/lib/data/cotizador'
+import { calcular } from '@/lib/cotizador/modelo'
+import { TarjetaCotizador } from '@/components/cotizador/tarjeta'
 import { codigoObra, codigoPresupuesto, etiquetaPresupuesto, velocidadLegible } from '@/lib/dominio'
 import { dinero } from '@/lib/formato'
-import { fechaCorta, hoyISO } from '@/lib/fechas'
+import { fechaCorta, hoyISO, momento } from '@/lib/fechas'
 import { PageHead, Codigo } from '@/components/comun/page-head'
 import { Surface, SurfaceHeader } from '@/components/ui/surface'
 import { EstadoPresupuestoLabel } from '@/components/ui/estado'
@@ -24,8 +27,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function PresupuestoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound()
-  const p = await getPresupuesto(id)
+  const [p, cot] = await Promise.all([getPresupuesto(id), getCotizacion(id)])
   if (!p) notFound()
+  const calc = cot ? calcular(cot.datos) : null
   const hoy = hoyISO()
   const activo = ['borrador', 'enviado', 'negociacion'].includes(p.estado)
   const conCliente = { ...p, clienteNombre: p.cliente.nombre }
@@ -101,6 +105,9 @@ export default async function PresupuestoPage({ params }: { params: Promise<{ id
         </section>
 
         <aside className="flex flex-col gap-5">
+          {p.estado !== 'perdido' && (
+            <TarjetaCotizador presupuestoId={p.id} resumen={calc && cot ? { unitario: calc.unitario, total: calc.total, cantidad: calc.cantidad, margenPct: calc.margenPct, actualizada: momento(cot.updatedAt).toLowerCase() } : null} />
+          )}
           <Surface>
             <SurfaceHeader titulo="Cliente" accion={<Link href={`/clientes/${p.cliente.id}`} className="text-[13px] font-medium text-ink-3 hover:text-ink">Ver ficha</Link>} />
             <div className="px-5 py-4">

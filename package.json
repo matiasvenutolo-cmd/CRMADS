@@ -12,8 +12,10 @@
     "usuario": "tsx scripts/usuario.mts"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.3.0",
     "@vercel/blob": "^2.8.2",
     "clsx": "^2.1.1",
+    "docx": "^9.5.1",
     "drizzle-orm": "^0.45.4",
     "jose": "^6.2.12",
     "lucide-react": "^1.49.0",

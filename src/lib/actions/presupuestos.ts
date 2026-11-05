@@ -3,7 +3,7 @@
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db/client'
-import { clientes, etapas, obras, presupuestoVersiones, presupuestos } from '@/lib/db/schema'
+import { clientes, cotizaciones, etapas, obras, presupuestoVersiones, presupuestos } from '@/lib/db/schema'
 import { requerirEdicion } from '@/lib/session'
 import { ESTADOS_PRESUPUESTO, ETAPAS_OBRA, TIPOS_CONTACTO, codigoObra, etiquetaPresupuesto, normalizarNumeroAds, siguienteVersion, type EstadoPresupuesto, type TipoContacto } from '@/lib/dominio'
 import { dinero } from '@/lib/formato'
@@ -284,6 +284,7 @@ export async function crearVersion(id: string, input: VersionInput): Promise<Res
   const monto = input.monto ? Number(String(input.monto).replace(/\./g, '')) : null
   const moneda = input.moneda === 'ARS' ? 'ARS' : 'USD'
   const nueva = siguienteVersion(p.version)
+  const cotizacion = await db.query.cotizaciones.findFirst({ where: eq(cotizaciones.presupuestoId, id), columns: { datos: true } })
 
   await db.transaction(async (tx) => {
     await tx.insert(presupuestoVersiones).values({
@@ -298,6 +299,7 @@ export async function crearVersion(id: string, input: VersionInput): Promise<Res
       paradas: p.paradas,
       velocidad: p.velocidad,
       cambios,
+      cotizacion: cotizacion?.datos ?? null,
     })
     await tx
       .update(presupuestos)

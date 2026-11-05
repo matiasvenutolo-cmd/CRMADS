@@ -13,6 +13,7 @@ import { crearPresupuesto, editarPresupuesto } from '@/lib/actions/presupuestos'
 import { LOCALIDADES_SUGERIDAS, TIPOLOGIAS } from '@/lib/dominio'
 import type { Presupuesto } from '@/lib/db/schema'
 import { sumarDias } from '@/lib/fechas'
+import { Sparkles } from 'lucide-react'
 
 function formatearMonto(v: string) {
   const digitos = v.replace(/\D/g, '')
@@ -25,7 +26,9 @@ export function PresupuestoForm({
   opciones,
   hoy,
   existente,
+  conCotizadorInicial = false,
 }: {
+  conCotizadorInicial?: boolean
   abierto: boolean
   onCerrar: () => void
   opciones: { id: string; nombre: string }[]
@@ -50,6 +53,7 @@ export function PresupuestoForm({
   const [seguimiento, setSeguimiento] = useState<string | null>(existente ? existente.proximoSeguimiento : sumarDias(hoy, 7))
   const [tecnicos, setTecnicos] = useState({ cargaKg: existente?.cargaKg?.toString() ?? '', paradas: existente?.paradas?.toString() ?? '', velocidad: existente?.velocidad ?? '' })
   const [notas, setNotas] = useState(existente?.notas ?? '')
+  const [conCotizador, setConCotizador] = useState(conCotizadorInicial)
 
   function guardar() {
     setError(undefined)
@@ -75,7 +79,7 @@ export function PresupuestoForm({
       if (!r.ok) return setError(r.error)
       toast(existente ? 'Presupuesto actualizado' : 'Presupuesto creado')
       onCerrar()
-      if (!existente && r.data && 'id' in r.data) router.push(`/presupuestos/${r.data.id}`)
+      if (!existente && r.data && 'id' in r.data) router.push(`/presupuestos/${r.data.id}${conCotizador ? '/cotizador' : ''}`)
       else router.refresh()
     })
   }
@@ -204,6 +208,19 @@ export function PresupuestoForm({
         <Field label="Notas" htmlFor="p-notas">
           <Textarea id="p-notas" value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Condiciones, alcance, lo que haga falta recordar." rows={3} />
         </Field>
+
+        {!existente && (
+          <label className="flex cursor-pointer items-start gap-3 rounded-control border border-dashed border-accent/40 bg-accent-soft/50 p-3.5 transition-colors hover:border-accent">
+            <input type="checkbox" checked={conCotizador} onChange={(e) => setConCotizador(e.target.checked)} className="mt-0.5 size-4 cursor-pointer accent-[var(--color-brand)]" />
+            <span>
+              <span className="flex items-center gap-1.5 text-[14px] font-medium text-ink">
+                <Sparkles className="size-3.5 text-accent" /> Probar el cotizador online
+                <span className="rounded-full bg-naranja/15 px-1.5 py-px text-[10.5px] font-semibold uppercase tracking-wide text-warn">Nuevo</span>
+              </span>
+              <span className="mt-0.5 block text-[13px] text-ink-3">Al crearlo, armás costos, precio y el documento en Word o PDF desde el sistema. Opcional: podés seguir con tus Excel y Word.</span>
+            </span>
+          </label>
+        )}
         <button type="submit" hidden />
       </form>
     </Panel>

@@ -7,7 +7,7 @@ import { ClienteForm } from '@/components/forms/cliente-form'
 import { opcionesDeClientes } from '@/lib/actions/clientes'
 
 type Tipo = 'presupuesto' | 'obra' | 'cliente'
-const Ctx = createContext<{ abrir: (t: Tipo) => void }>({ abrir: () => {} })
+const Ctx = createContext<{ abrir: (t: Tipo, o?: { cotizador?: boolean }) => void }>({ abrir: () => {} })
 
 export function useNuevo() {
   return useContext(Ctx)
@@ -17,9 +17,11 @@ export function NuevoProvider({ hoy, children }: { hoy: string; children: React.
   const [tipo, setTipo] = useState<Tipo | null>(null)
   const [vez, setVez] = useState(0)
   const [opciones, setOpciones] = useState<{ id: string; nombre: string }[]>([])
+  const [conCotizador, setConCotizador] = useState(false)
 
-  const abrir = useCallback((t: Tipo) => {
+  const abrir = useCallback((t: Tipo, o?: { cotizador?: boolean }) => {
     if (t !== 'cliente') opcionesDeClientes().then(setOpciones)
+    setConCotizador(Boolean(o?.cotizador))
     setVez((v) => v + 1)
     setTipo(t)
   }, [])
@@ -28,7 +30,7 @@ export function NuevoProvider({ hoy, children }: { hoy: string; children: React.
   return (
     <Ctx.Provider value={{ abrir }}>
       {children}
-      <PresupuestoForm key={`p${vez}`} abierto={tipo === 'presupuesto'} onCerrar={cerrar} opciones={opciones} hoy={hoy} />
+      <PresupuestoForm key={`p${vez}`} abierto={tipo === 'presupuesto'} onCerrar={cerrar} opciones={opciones} hoy={hoy} conCotizadorInicial={conCotizador} />
       <ObraForm key={`o${vez}`} abierto={tipo === 'obra'} onCerrar={cerrar} opciones={opciones} hoy={hoy} />
       <ClienteForm key={`c${vez}`} abierto={tipo === 'cliente'} onCerrar={cerrar} />
     </Ctx.Provider>
