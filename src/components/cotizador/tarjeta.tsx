@@ -5,7 +5,7 @@ import { ArrowRight, Download, FileText, Sparkles } from 'lucide-react'
 import { usePuedeEditar } from '@/components/shell/permisos'
 
 /** En la ficha del presupuesto: invita a probar el cotizador, o resume la cotización si ya existe. */
-export function TarjetaCotizador({ presupuestoId, resumen }: { presupuestoId: string; resumen: { unitario: number; total: number; cantidad: number; margenPct: number; actualizada: string } | null }) {
+export function TarjetaCotizador({ presupuestoId, resumen }: { presupuestoId: string; resumen: { unitario: number; total: number; cantidad: number; margenPct: number; actualizada: string; importada?: boolean } | null }) {
   const puedeEditar = usePuedeEditar()
   const usd = (v: number) => `US$ ${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(Math.round(v))}`
   if (!resumen) {
@@ -26,10 +26,10 @@ export function TarjetaCotizador({ presupuestoId, resumen }: { presupuestoId: st
   return (
     <div className="banda overflow-hidden rounded-surface text-white shadow-surface">
       <Link href={`/presupuestos/${presupuestoId}/cotizador`} className="group block px-5 pb-4 pt-4">
-        <p className="kicker kicker-claro">Cotización</p>
+        <p className="kicker kicker-claro">{resumen.importada ? 'Cotización · de tus archivos' : 'Cotización'}</p>
         <p className="mt-1.5 font-serif text-[30px] leading-none">{usd(resumen.unitario)}</p>
         <p className="mt-1 text-[12.5px] text-white/70">
-          {resumen.cantidad > 1 ? `por equipo · total ${usd(resumen.total)} · ` : ''}margen {Math.round(resumen.margenPct * 100)}% · {resumen.actualizada}
+          {resumen.cantidad > 1 ? `por equipo · total ${usd(resumen.total)} · ` : ''}margen {Math.round(resumen.margenPct * 100)}% · {resumen.importada ? 'importada del Excel y el Word' : resumen.actualizada}
         </p>
         <span className="mt-2.5 inline-flex items-center gap-1 text-[13.5px] font-medium">
           Abrir cotizador <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />

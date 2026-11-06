@@ -31,6 +31,7 @@ function sanear(c: Cotizacion): Cotizacion {
     encabezado: { lugar: str(c.encabezado?.lugar, 80), fecha: str(c.encabezado?.fecha, 10), atencion: str(c.encabezado?.atencion, 200), referencia: str(c.encabezado?.referencia, 600) },
     condiciones: { pago: str(c.condiciones?.pago, 500), plazo: str(c.condiciones?.plazo, 500), validez: str(c.condiciones?.validez, 100) },
     secciones: (c.secciones ?? []).slice(0, 80).map((s) => ({ id: str(s.id, 20), grupo: s.grupo === 'condiciones' ? 'condiciones' : 'tecnica', titulo: str(s.titulo, 200), texto: str(s.texto), incluir: s.incluir !== false })),
+    ...(c.origen?.tipo === 'importada' ? { origen: { tipo: 'importada' as const, excel: str(c.origen.excel, 200), word: str(c.origen.word, 200), totalExcel: num(c.origen.totalExcel), opcion: str(c.origen.opcion, 200) } } : {}),
   }
 }
 

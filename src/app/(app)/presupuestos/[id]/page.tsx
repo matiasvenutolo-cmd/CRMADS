@@ -106,7 +106,7 @@ export default async function PresupuestoPage({ params }: { params: Promise<{ id
 
         <aside className="flex flex-col gap-5">
           {p.estado !== 'perdido' && (
-            <TarjetaCotizador presupuestoId={p.id} resumen={calc && cot ? { unitario: calc.unitario, total: calc.total, cantidad: calc.cantidad, margenPct: calc.margenPct, actualizada: momento(cot.updatedAt).toLowerCase() } : null} />
+            <TarjetaCotizador presupuestoId={p.id} resumen={calc && cot ? { unitario: calc.unitario, total: calc.total, cantidad: calc.cantidad, margenPct: calc.margenPct, actualizada: momento(cot.updatedAt).toLowerCase(), importada: cot.datos.origen?.tipo === 'importada' } : null} />
           )}
           <Surface>
             <SurfaceHeader titulo="Cliente" accion={<Link href={`/clientes/${p.cliente.id}`} className="text-[13px] font-medium text-ink-3 hover:text-ink">Ver ficha</Link>} />

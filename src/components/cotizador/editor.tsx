@@ -116,6 +116,14 @@ export function EditorCotizacion({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+      {c.origen?.tipo === 'importada' && (
+        <div className="flex items-start gap-3 rounded-surface border border-accent/20 bg-accent-soft/60 px-4 py-3 text-[13.5px] text-ink-2 lg:col-span-2">
+          <FileText className="mt-0.5 size-4 shrink-0 text-accent" />
+          <p>
+            <span className="font-medium text-ink">Armada a partir de los archivos de este presupuesto</span> ({c.origen.excel} y {c.origen.word}). Los costos son los de la planilla (total del Excel {usd(c.origen.totalExcel)}) y el precio final es el monto del presupuesto. Los archivos originales siguen en el presupuesto, sin cambios.
+          </p>
+        </div>
+      )}
       <fieldset disabled={!puedeEditar || pendiente} className="flex min-w-0 flex-col gap-6">
         {/* 01 · Equipo */}
         <Paso n={1} titulo="Equipo" descripcion="Tipo, cantidad y la ficha técnica que va en el presupuesto.">

@@ -53,6 +53,8 @@ export type Cotizacion = {
   encabezado: { lugar: string; fecha: string; atencion: string; referencia: string }
   condiciones: { pago: string; plazo: string; validez: string }
   secciones: SeccionDoc[]
+  // Si se armó leyendo el Excel y el Word que ya tenía el presupuesto.
+  origen?: { tipo: 'importada'; excel: string; word: string; totalExcel: number; opcion?: string }
 }
 
 export type ConfigCotizador = {
