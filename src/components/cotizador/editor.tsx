@@ -47,7 +47,8 @@ export function EditorCotizacion({
 }) {
   const router = useRouter()
   const toast = useToast()
-  const puedeEditar = usePuedeEditar()
+  const importada = inicial.origen?.tipo === 'importada'
+  const puedeEditar = usePuedeEditar() && !importada
   const [pendiente, start] = useTransition()
   const [c, setC] = useState<Cotizacion>(inicial)
   const [sucia, setSucia] = useState(!guardada)
@@ -120,7 +121,7 @@ export function EditorCotizacion({
         <div className="flex items-start gap-3 rounded-surface border border-accent/20 bg-accent-soft/60 px-4 py-3 text-[13.5px] text-ink-2 lg:col-span-2">
           <FileText className="mt-0.5 size-4 shrink-0 text-accent" />
           <p>
-            <span className="font-medium text-ink">Armada a partir de los archivos de este presupuesto</span> ({c.origen.excel} y {c.origen.word}). Los costos son los de la planilla (total del Excel {usd(c.origen.totalExcel)}) y el precio final es el monto del presupuesto. Los archivos originales siguen en el presupuesto, sin cambios.
+            <span className="font-medium text-ink">Sólo para ver · armada a partir de los archivos de este presupuesto</span> ({c.origen.excel} y {c.origen.word}). Los costos son los de la planilla (total del Excel {usd(c.origen.totalExcel)}) y el precio final es el monto del presupuesto. Los archivos originales siguen en el presupuesto, sin cambios. Desde acá se pueden descargar el Word y el PDF.
           </p>
         </div>
       )}
@@ -154,13 +155,13 @@ export function EditorCotizacion({
               <div key={f.id} className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_36px] items-center gap-2 px-2 py-1.5">
                 <input aria-label="Campo" value={f.campo} onChange={(e) => set({ ficha: c.ficha.map((x) => (x.id === f.id ? { ...x, campo: e.target.value } : x)) })} className="h-9 rounded-[7px] bg-transparent px-2 text-[12.5px] font-semibold uppercase tracking-wide text-ink-3 hover:bg-subtle focus:bg-subtle focus:outline-none" />
                 <input aria-label={`Valor de ${f.campo}`} value={f.valor} onChange={(e) => set({ ficha: c.ficha.map((x) => (x.id === f.id ? { ...x, valor: e.target.value } : x)) })} className="h-9 rounded-[7px] bg-transparent px-2 text-[14px] text-ink hover:bg-subtle focus:bg-subtle focus:outline-none" />
-                <button type="button" onClick={() => set({ ficha: c.ficha.filter((x) => x.id !== f.id) })} aria-label={`Quitar ${f.campo}`} className="flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-3 hover:bg-bad-soft hover:text-bad">
+                <button type="button" onClick={() => set({ ficha: c.ficha.filter((x) => x.id !== f.id) })} aria-label={`Quitar ${f.campo}`} className="solo-edicion flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-3 hover:bg-bad-soft hover:text-bad">
                   <Trash2 className="size-3.5" />
                 </button>
               </div>
             ))}
           </div>
-          <Button variante="ghost" tamano="sm" className="mt-2" onClick={() => set({ ficha: [...c.ficha, { id: uid(), campo: 'Nuevo campo', valor: '' }] })}>
+          <Button variante="ghost" tamano="sm" className="solo-edicion mt-2" onClick={() => set({ ficha: [...c.ficha, { id: uid(), campo: 'Nuevo campo', valor: '' }] })}>
             <Plus className="size-3.5" /> Agregar campo
           </Button>
         </Paso>
@@ -183,7 +184,7 @@ export function EditorCotizacion({
               <button
                 type="button"
                 onClick={() => set({ base: { ...c.base, precio: sugeridaBase.precio, detalle: `Lista ${sugeridaBase.paradas} paradas${sugeridaBase.detalle ? ` · ${sugeridaBase.detalle}` : ''}` } })}
-                className="mt-3 inline-flex cursor-pointer items-center gap-1.5 text-[13px] font-medium text-accent hover:underline"
+                className="solo-edicion mt-3 inline-flex cursor-pointer items-center gap-1.5 text-[13px] font-medium text-accent hover:underline"
               >
                 <Wand2 className="size-3.5" /> Usar el precio de lista para {sugeridaBase.paradas} paradas: {usd(sugeridaBase.precio)}
               </button>
@@ -209,7 +210,7 @@ export function EditorCotizacion({
                       <span className="mb-0.5 block text-[11px] font-medium uppercase tracking-wide text-ink-3">{CATEGORIAS[l.categoria]}</span>
                       <input aria-label="Ítem" value={l.nombre} onChange={(e) => setLinea(l.id, { nombre: e.target.value })} className="h-8 w-full rounded-[7px] bg-transparent px-1.5 -ml-1.5 text-ink hover:bg-subtle focus:bg-subtle focus:outline-none" />
                       {l.categoria === 'mano_obra' && Math.abs(l.costo - moSugerida) > 1 && (
-                        <button type="button" onClick={() => setLinea(l.id, { costo: moSugerida })} className="cursor-pointer text-[12px] text-accent hover:underline">
+                        <button type="button" onClick={() => setLinea(l.id, { costo: moSugerida })} className="solo-edicion cursor-pointer text-[12px] text-accent hover:underline">
                           Referencia por {c.paradas} paradas: {usd(moSugerida)}
                         </button>
                       )}
@@ -225,7 +226,7 @@ export function EditorCotizacion({
                       <input type="checkbox" aria-label="Sin margen" checked={l.sinMargen} onChange={(e) => setLinea(l.id, { sinMargen: e.target.checked })} className="size-4 cursor-pointer accent-[var(--color-brand)]" />
                     </td>
                     <td className="py-1.5 text-right">
-                      <button type="button" onClick={() => set({ lineas: c.lineas.filter((x) => x.id !== l.id) })} aria-label={`Quitar ${l.nombre}`} className="flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-3 hover:bg-bad-soft hover:text-bad">
+                      <button type="button" onClick={() => set({ lineas: c.lineas.filter((x) => x.id !== l.id) })} aria-label={`Quitar ${l.nombre}`} className="solo-edicion flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-3 hover:bg-bad-soft hover:text-bad">
                         <Trash2 className="size-3.5" />
                       </button>
                     </td>
@@ -235,7 +236,7 @@ export function EditorCotizacion({
             </table>
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="solo-edicion mt-3 flex flex-wrap gap-2">
             <div className="w-full sm:w-80">
               <Select aria-label="Agregar del catálogo" value="" onChange={(e) => agregarDelCatalogo(e.target.value)}>
                 <option value="">+ Agregar del catálogo…</option>
@@ -290,12 +291,12 @@ export function EditorCotizacion({
             <div key={a.id} className="mb-2 grid grid-cols-[1fr_140px_36px] gap-2">
               <Input aria-label="Concepto" value={a.concepto} onChange={(e) => set({ alternativas: c.alternativas.map((x) => (x.id === a.id ? { ...x, concepto: e.target.value } : x)) })} placeholder="Con botonera táctil, con cabina panorámica…" />
               <Numero aria-label="Monto" value={a.monto} onChange={(v) => set({ alternativas: c.alternativas.map((x) => (x.id === a.id ? { ...x, monto: v } : x)) })} />
-              <button type="button" onClick={() => set({ alternativas: c.alternativas.filter((x) => x.id !== a.id) })} aria-label="Quitar alternativa" className="flex size-10 cursor-pointer items-center justify-center rounded-full text-ink-3 hover:bg-bad-soft hover:text-bad">
+              <button type="button" onClick={() => set({ alternativas: c.alternativas.filter((x) => x.id !== a.id) })} aria-label="Quitar alternativa" className="solo-edicion flex size-10 cursor-pointer items-center justify-center rounded-full text-ink-3 hover:bg-bad-soft hover:text-bad">
                 <Trash2 className="size-4" />
               </button>
             </div>
           ))}
-          <Button variante="ghost" tamano="sm" onClick={() => set({ alternativas: [...c.alternativas, { id: uid(), concepto: '', monto: 0 }] })}>
+          <Button variante="ghost" tamano="sm" className="solo-edicion" onClick={() => set({ alternativas: [...c.alternativas, { id: uid(), concepto: '', monto: 0 }] })}>
             <Plus className="size-3.5" /> Agregar alternativa
           </Button>
         </Paso>
@@ -313,7 +314,7 @@ export function EditorCotizacion({
           <Field label="Referencia" htmlFor="c-ref" className="mt-3">
             <Textarea id="c-ref" rows={2} value={c.encabezado.referencia} onChange={(e) => set({ encabezado: { ...c.encabezado, referencia: e.target.value } })} className="min-h-0" />
           </Field>
-          <button type="button" onClick={() => set({ encabezado: { ...c.encabezado, referencia: referenciaSugerida({ cantidad: c.cantidad, tipo: c.tipo, direccion: presupuesto.direccion, localidad: presupuesto.localidad }) } })} className="mt-1 cursor-pointer text-[12.5px] text-accent hover:underline">
+          <button type="button" onClick={() => set({ encabezado: { ...c.encabezado, referencia: referenciaSugerida({ cantidad: c.cantidad, tipo: c.tipo, direccion: presupuesto.direccion, localidad: presupuesto.localidad }) } })} className="solo-edicion mt-1 cursor-pointer text-[12.5px] text-accent hover:underline">
             Rearmar la referencia con los datos actuales
           </button>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -342,13 +343,13 @@ export function EditorCotizacion({
                       <li key={s.id}>
                         <div className="flex items-center gap-3 px-3 py-2.5">
                           <input type="checkbox" aria-label={`Incluir ${s.titulo}`} checked={s.incluir} onChange={(e) => set({ secciones: c.secciones.map((x) => (x.id === s.id ? { ...x, incluir: e.target.checked } : x)) })} className="size-4 cursor-pointer accent-[var(--color-brand)]" />
-                          <button type="button" onClick={() => setAbiertas({ ...abiertas, [s.id]: !abierta })} className={cn('flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-3 text-left', !s.incluir && 'opacity-50')}>
+                          <div role="button" tabIndex={0} aria-expanded={abierta} onClick={() => setAbiertas({ ...abiertas, [s.id]: !abierta })} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), setAbiertas({ ...abiertas, [s.id]: !abierta }))} className={cn('flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-3 text-left', !s.incluir && 'opacity-50')}>
                             <span className="min-w-0">
                               <span className="block truncate text-[14px] font-medium text-ink">{s.titulo}</span>
                               <span className="block truncate text-[12.5px] text-ink-3">{actual ? (variantes.length > 1 ? `Versión ${variantes.indexOf(actual) + 1} de ${variantes.length}` : 'Texto estándar') : 'Texto editado'}</span>
                             </span>
                             <ChevronDown className={cn('size-4 shrink-0 text-ink-3 transition-transform', abierta && 'rotate-180')} />
-                          </button>
+                          </div>
                         </div>
                         {abierta && (
                           <div className="border-t border-line bg-subtle px-3 pb-3 pt-3">

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { desc, eq, inArray } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, isNull } from 'drizzle-orm'
 import { ArrowRight } from 'lucide-react'
 import { db } from '@/lib/db/client'
 import { clientes, cotizaciones, presupuestos } from '@/lib/db/schema'
@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: 'Cotizador online' }
 const usd = (v: number) => `US$ ${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(Math.round(v))}`
 
 export default async function CotizadorInicio() {
-  const [hechas, sinCotizar] = await Promise.all([
+  const [hechas, sinCotizar, [{ total }]] = await Promise.all([
     db
       .select({ id: presupuestos.id, numero: presupuestos.numero, numeroAds: presupuestos.numeroAds, version: presupuestos.version, direccion: presupuestos.direccion, cliente: clientes.nombre, datos: cotizaciones.datos, updatedAt: cotizaciones.updatedAt })
       .from(cotizaciones)
@@ -28,11 +28,12 @@ export default async function CotizadorInicio() {
       .select({ id: presupuestos.id, numero: presupuestos.numero, numeroAds: presupuestos.numeroAds, version: presupuestos.version, direccion: presupuestos.direccion, cliente: clientes.nombre })
       .from(presupuestos)
       .innerJoin(clientes, eq(clientes.id, presupuestos.clienteId))
-      .where(inArray(presupuestos.estado, ['borrador', 'enviado', 'negociacion']))
+      .leftJoin(cotizaciones, eq(cotizaciones.presupuestoId, presupuestos.id))
+      .where(and(inArray(presupuestos.estado, ['borrador', 'enviado', 'negociacion']), isNull(cotizaciones.presupuestoId)))
       .orderBy(desc(presupuestos.createdAt))
       .limit(8),
+    db.select({ total: count() }).from(cotizaciones),
   ])
-  const yaCotizados = new Set(hechas.map((h) => h.id))
 
   return (
     <div>
@@ -67,7 +68,7 @@ export default async function CotizadorInicio() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Surface>
-          <SurfaceHeader titulo={`Cotizaciones${hechas.length ? ` · ${hechas.length}` : ''}`} />
+          <SurfaceHeader titulo={`Cotizaciones${total ? ` · ${total}` : ''}`} accion={total > hechas.length ? <span className="text-[12.5px] text-ink-3">Las últimas {hechas.length}</span> : undefined} />
           {hechas.length === 0 ? (
             <p className="px-5 py-5 text-[14px] text-ink-3">Todavía no se armó ninguna. Probá con un presupuesto nuevo o con uno de la derecha.</p>
           ) : (
@@ -80,7 +81,7 @@ export default async function CotizadorInicio() {
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-[14.5px] font-medium text-ink group-hover:underline">{h.direccion}</span>
                         <span className="flex gap-2 text-[12.5px] text-ink-3">
-                          <Codigo>{etiquetaPresupuesto(h)}</Codigo> {h.cliente} · {momento(h.updatedAt).toLowerCase()}
+                          <Codigo>{etiquetaPresupuesto(h)}</Codigo> {h.cliente} · {(h.datos as Cotizacion).origen?.tipo === 'importada' ? 'de sus archivos' : momento(h.updatedAt).toLowerCase()}
                         </span>
                       </span>
                       <span className="text-right">
@@ -97,9 +98,7 @@ export default async function CotizadorInicio() {
         <Surface>
           <SurfaceHeader titulo="Cotizar uno en curso" />
           <ul className="divide-y divide-line">
-            {sinCotizar
-              .filter((p) => !yaCotizados.has(p.id))
-              .map((p) => (
+            {sinCotizar.map((p) => (
                 <li key={p.id}>
                   <Link href={`/presupuestos/${p.id}/cotizador`} className="group flex items-center gap-3 px-5 py-3.5">
                     <span className="min-w-0 flex-1">

@@ -38,7 +38,9 @@ function sanear(c: Cotizacion): Cotizacion {
 export async function guardarCotizacion(presupuestoId: string, datos: Cotizacion): Promise<Resultado> {
   const u = await requerirEdicion()
   const limpio = sanear(datos)
-  const existente = await db.query.cotizaciones.findFirst({ where: eq(cotizaciones.presupuestoId, presupuestoId), columns: { presupuestoId: true } })
+  const existente = await db.query.cotizaciones.findFirst({ where: eq(cotizaciones.presupuestoId, presupuestoId), columns: { presupuestoId: true, datos: true } })
+  // Las importadas de los Excel y Word son sólo para ver, por ahora.
+  if ((existente?.datos as Cotizacion | undefined)?.origen?.tipo === 'importada') return { ok: false, error: 'Esta cotización se armó con los archivos del presupuesto y por ahora es sólo para ver.' }
   await db
     .insert(cotizaciones)
     .values({ presupuestoId, datos: limpio, usuarioId: u.id })
@@ -51,7 +53,8 @@ export async function guardarCotizacion(presupuestoId: string, datos: Cotizacion
 /** Pasa el total de la cotización al monto del presupuesto. */
 export async function usarPrecioCotizado(presupuestoId: string, datos: Cotizacion): Promise<Resultado> {
   const u = await requerirEdicion()
-  await guardarCotizacion(presupuestoId, datos)
+  const guardada = await guardarCotizacion(presupuestoId, datos)
+  if (!guardada.ok) return guardada
   const total = calcular(sanear(datos)).total
   const p = await db.query.presupuestos.findFirst({ where: eq(presupuestos.id, presupuestoId), columns: { monto: true, moneda: true } })
   if (!p) return { ok: false, error: 'No existe el presupuesto.' }

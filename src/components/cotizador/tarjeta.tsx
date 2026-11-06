@@ -32,7 +32,7 @@ export function TarjetaCotizador({ presupuestoId, resumen }: { presupuestoId: st
           {resumen.cantidad > 1 ? `por equipo · total ${usd(resumen.total)} · ` : ''}margen {Math.round(resumen.margenPct * 100)}% · {resumen.importada ? 'importada del Excel y el Word' : resumen.actualizada}
         </p>
         <span className="mt-2.5 inline-flex items-center gap-1 text-[13.5px] font-medium">
-          Abrir cotizador <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          {resumen.importada ? 'Ver la cotización' : 'Abrir cotizador'} <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
         </span>
       </Link>
       <div className="grid grid-cols-2 border-t border-white/15 text-[13px] font-medium">

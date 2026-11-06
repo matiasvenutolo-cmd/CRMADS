@@ -152,3 +152,8 @@ body {
 .kicker-claro {
   color: rgb(255 255 255 / 0.72);
 }
+
+/* Cotizador en modo sólo lectura: se esconden los controles de edición */
+fieldset:disabled .solo-edicion {
+  display: none;
+}

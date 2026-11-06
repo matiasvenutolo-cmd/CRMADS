@@ -39,7 +39,7 @@ export default async function CotizadorPage({ params }: { params: Promise<{ id: 
             {p.localidad && <span className="text-ink-3">, {p.localidad}</span>}
           </>
         }
-        descripcion={cot ? `Guardada ${momento(cot.updatedAt).toLowerCase()}${cot.autor ? ` · ${cot.autor}` : ''}` : 'Armá la cotización acá y descargá el presupuesto en Word o PDF. Arranca con los valores de siempre: revisalos y ajustá lo que haga falta.'}
+        descripcion={cot?.datos.origen?.tipo === 'importada' ? 'Sólo para ver: la cotización de este presupuesto armada con su Excel y su Word.' : cot ? `Guardada ${momento(cot.updatedAt).toLowerCase()}${cot.autor ? ` · ${cot.autor}` : ''}` : 'Armá la cotización acá y descargá el presupuesto en Word o PDF. Arranca con los valores de siempre: revisalos y ajustá lo que haga falta.'}
         acciones={
           <Link href="/cotizador/precios" className="text-[13.5px] font-medium text-ink-3 hover:text-ink">
             Precios y textos →
