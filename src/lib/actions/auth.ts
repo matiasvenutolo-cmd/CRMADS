@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { db } from '@/lib/db/client'
 import { usuarios } from '@/lib/db/schema'
 import { hashPassword, verifyPassword } from '@/lib/auth/hash'
-import { crearSesion, destruirSesion, getUsuarioActual } from '@/lib/session'
+import { crearSesion, destruirSesion, getUsuarioActual, registrarIngreso } from '@/lib/session'
 
 export async function iniciarSesion(_prev: { error?: string; usuario?: string } | undefined, form: FormData): Promise<{ error?: string; usuario?: string }> {
   const usuario = String(form.get('usuario') ?? '').trim().toLowerCase()
@@ -17,6 +17,7 @@ export async function iniciarSesion(_prev: { error?: string; usuario?: string } 
   if (!ok) return { error: 'Usuario o contraseña incorrectos.', usuario }
 
   await crearSesion(u.id)
+  await registrarIngreso(u, true)
   redirect('/')
 }
 

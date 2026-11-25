@@ -1,4 +1,5 @@
-import { getUsuarioActual } from '@/lib/session'
+import { after } from 'next/server'
+import { getUsuarioActual, registrarIngreso } from '@/lib/session'
 import { hoyISO } from '@/lib/fechas'
 import { Shell } from '@/components/shell/shell'
 import { NuevoProvider } from '@/components/shell/nuevo'
@@ -8,6 +9,7 @@ import { PermisosProvider } from '@/components/shell/permisos'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const usuario = await getUsuarioActual()
+  after(() => registrarIngreso(usuario))
   return (
     <PermisosProvider puedeEditar={usuario.rol !== 'direccion'}>
     <ToastProvider>

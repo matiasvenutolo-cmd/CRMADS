@@ -8,8 +8,23 @@ export const usuarios = pgTable('usuarios', {
   activo: boolean('activo').notNull().default(true),
   // 'gestion': carga y sigue el día a día. 'direccion': ve el tablero del negocio.
   rol: text('rol').notNull().default('gestion'),
+  ultimoIngreso: timestamp('ultimo_ingreso', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
+
+// Cada vez que alguien abre el sistema (como mucho uno cada 30 minutos por usuario).
+// Sirve para seguir la adopción: quién entra, cuándo y con qué frecuencia.
+export const ingresos = pgTable(
+  'ingresos',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    usuarioId: uuid('usuario_id')
+      .notNull()
+      .references(() => usuarios.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('ingresos_usuario_idx').on(t.usuarioId, t.createdAt)]
+)
 
 export const clientes = pgTable('clientes', {
   id: uuid('id').primaryKey().defaultRandom(),
